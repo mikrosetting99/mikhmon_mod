@@ -323,6 +323,17 @@ include('./info.php');
   <a href="./?hotspot=quick-print&session=<?= $session; ?>" class="menu <?= $squick; ?>"> <i class="fa fa-print"></i> <?= $_quick_print ?> </a>
   <!--vouchers-->
   <a href="./?hotspot=users-by-profile&session=<?= $session; ?>" class="menu <?= $susersbp; ?>"> <i class="fa fa-ticket"></i> <?= $_vouchers ?> </a>
+  <!--pppoe-->
+  <div class="dropdown-btn <?= $mppp; ?>"><i class="fa fa-plug"></i> PPPoE
+    <i class="fa fa-caret-down"></i>
+  </div>
+  <div class="dropdown-container <?= $pppmenu; ?>">
+    <a href="./?ppp=active&session=<?= $session; ?>" class="<?= $spactive; ?>"> <i class="fa fa-wifi "></i> <?= $_ppp_active ?> </a>
+    <a href="./?ppp=secrets&session=<?= $session; ?>" class="<?= $ssecrets; ?>"> <i class="fa fa-users "></i> <?= $_ppp_secrets ?> </a>
+    <a href="./?ppp=addsecret&session=<?= $session; ?>" class=""> <i class="fa fa-user-plus "></i> <?= $_add ?> <?= $_ppp_secrets ?> </a>
+    <a href="./?ppp=profiles&session=<?= $session; ?>" class="<?= $spprofile; ?>"> <i class="fa fa-pie-chart "></i> <?= $_ppp_profiles ?> </a>
+    <a href="./?ppp=add-profile&session=<?= $session; ?>" class=""> <i class="fa fa-plus-square "></i> <?= $_add ?> <?= $_ppp_profiles ?> </a>
+  </div>
    <!--log-->
   <div class="dropdown-btn <?= $log; ?>"><i class=" fa fa-align-justify"></i> <?= $_log ?>
     <i class="fa fa-caret-down"></i>

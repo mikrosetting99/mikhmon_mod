@@ -130,9 +130,23 @@ include('../lang/'.$langid.'.php');
     $hunit = "items";
   }
 
+// get & counting pppoe. Memakai count-only supaya router hanya mengirim angka,
+// bukan seluruh baris data — panggilan ini ikut tiap siklus auto reload.
+  // comm() mengembalikan array kosong bila router tidak terjangkau, dan di PHP 8
+  // "[] == ''" bernilai false — jadi nilainya harus dinormalkan secara eksplisit.
+  $countpppactive = $API->comm("/ppp/active/print", array("count-only" => ""));
+  $countpppsecret = $API->comm("/ppp/secret/print", array("count-only" => ""));
+  $countpppdis    = $API->comm("/ppp/secret/print", array("?disabled" => "true", "count-only" => ""));
+  $countpppactive = is_array($countpppactive) ? 0 : (int) $countpppactive;
+  $countpppsecret = is_array($countpppsecret) ? 0 : (int) $countpppsecret;
+  $countpppdis    = is_array($countpppdis)    ? 0 : (int) $countpppdis;
+  $countpppoff = $countpppsecret - $countpppdis - $countpppactive;
+  if ($countpppoff < 0) { $countpppoff = 0; }
+
   ?>
-    
-            <div id="r_2" class="card">
+
+            <div id="r_2">
+            <div class="card">
               <div class="card-header"><h3><i class="fa fa-wifi"></i> Hotspot</h3></div>
                 <div class="card-body">
                   <div class="row">
@@ -191,9 +205,67 @@ include('../lang/'.$langid.'.php');
               </div>
             </div>
           </div>
+
+            <div class="card">
+              <div class="card-header"><h3><i class="fa fa-plug"></i> PPPoE</h3></div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-3 col-box-6">
+                      <div class="box bg-green bmh-75">
+                        <a href="./?ppp=active&session=<?= $session; ?>">
+                          <h1><?= $countpppactive; ?>
+                            <span style="font-size: 15px;">online</span>
+                          </h1>
+                          <div>
+                            <i class="fa fa-plug"></i> <?= $_ppp_active ?>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                    <div class="col-3 col-box-6">
+                      <div class="box bg-grey bmh-75">
+                        <a href="./?ppp=secrets&session=<?= $session; ?>">
+                          <h1><?= $countpppoff; ?>
+                            <span style="font-size: 15px;">offline</span>
+                          </h1>
+                          <div>
+                            <i class="fa fa-power-off"></i> <?= $_ppp_secrets ?>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                    <div class="col-3 col-box-6">
+                      <div class="box bg-blue bmh-75">
+                        <a href="./?ppp=secrets&session=<?= $session; ?>">
+                          <h1><?= $countpppsecret; ?>
+                            <span style="font-size: 15px;">total</span>
+                          </h1>
+                          <div>
+                            <i class="fa fa-users"></i> <?= $_ppp_secrets ?>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                    <div class="col-3 col-box-6">
+                      <div class="box bg-yellow bmh-75">
+                        <a href="./?ppp=addsecret&session=<?= $session; ?>">
+                          <div>
+                            <h1><i class="fa fa-user-plus"></i>
+                              <span style="font-size: 15px;"><?= $_add ?></span>
+                            </h1>
+                          </div>
+                          <div>
+                            <i class="fa fa-user-plus"></i> <?= $_ppp_secrets ?>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            </div>
           </div>
 
-<?php 
+<?php
 } else if ($load == "logs") {
 
   $API->connect($iphost, $userhost, decrypt($passwdhost));

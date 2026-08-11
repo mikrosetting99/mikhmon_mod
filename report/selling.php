@@ -18,10 +18,13 @@
 session_start();
 // hide all error
 error_reporting(0);
+require_once __DIR__ . '/../include/pagination.php';
 if (!isset($_SESSION["mikhmon"])) {
 	header("Location:../admin.php?id=login");
 } else {
 
+	$TotalReg = 0;
+	$getData  = array();
 	$idhr = $_GET['idhr'];
 	$idbl = $_GET['idbl'];
 	$idbl2 = explode("/",$idhr)[0].explode("/",$idhr)[2];
@@ -350,80 +353,54 @@ $(document).ready(function(){
 				</thead>
 				<tbody>
 				<?php
-			if ($prefix != "") {
-				for ($i = 0; $i < $TotalReg; $i++) {
-					$getname = explode("-|-", $getData[$i]['name']);
-					if (substr($getname[2], 0, strlen($prefix)) == $prefix) {
-						echo "<tr>";
-						echo "<td>";
-						$tgl = $getname[0];
-						echo $tgl;
-						echo "</td>";
-						echo "<td>";
-						$ltime = $getname[1];
-						echo $ltime;
-						echo "</td>";
-						echo "<td>";
-						$username = $getname[2];
-						echo $username;
-						echo "</td>";
-						echo "<td>";
-						$profile = $getname[7];
-						echo $profile;
-						echo "</td>";
-						echo "<td>";
-						$comment = $getname[8];
-						echo $comment;
-						echo "</td>";
-						echo "<td style='text-align:right;'>";
-						$price = $getname[3];
-						echo $price;
-						echo "</td>";
-						echo "</tr>";
-					}
+			// Susun dulu baris yang akan ditampilkan (menghormati filter prefix),
+			// supaya total penjualan dihitung dari SELURUH data. Sebelumnya total
+			// diakumulasi di dalam loop render; begitu tabel dipaginasi, angkanya
+			// ikut terpotong jadi sebanyak baris yang tampil saja.
+			$rows = array();
+			for ($i = 0; $i < $TotalReg; $i++) {
+				$g = explode("-|-", $getData[$i]["name"]);
+				if ($prefix != "" && substr($g[2], 0, strlen($prefix)) != $prefix) {
+					continue;
 				}
-			} else {
-				for ($i = 0; $i < $TotalReg; $i++) {
-					$getname = explode("-|-", $getData[$i]['name']);
-					echo "<tr>";
-					echo "<td>";
-					$tgl = $getname[0];
-					echo $tgl;
-					echo "</td>";
-					echo "<td>";
-					$ltime = $getname[1];
-					echo $ltime;
-					echo "</td>";
-					echo "<td>";
-					$username = $getname[2];
-					echo $username;
-					echo "</td>";
-					echo "<td>";
-					$profile = $getname[7];
-					echo $profile;
-					echo "</td>";
-					echo "<td>";
-					$comment = $getname[8];
-					echo $comment;
-					echo "</td>";
-					echo "<td style='text-align:right;'>";
-					$price = $getname[3];
-					echo $price;
-					echo "</td>";
-					echo "</tr>";
-				
-				$dataresume .= $getname[0].$getname[3];
-				$totalresume += $getname[3];
-				$_SESSION['dataresume'] = $dataresume;
-				$_SESSION['totalresume'] = $TotalReg.'/'.$totalresume;
+				$rows[] = $g;
+			}
+
+			// Perilaku asli: resume hanya dihitung saat tidak ada filter prefix.
+			// Dipertahankan supaya report/resumereport.php tidak berubah artinya.
+			if ($prefix == "") {
+				$dataresume = "";
+				$totalresume = 0;
+				foreach ($rows as $g) {
+					$dataresume .= $g[0] . $g[3];
+					$totalresume += $g[3];
 				}
-					
+				$_SESSION["dataresume"] = $dataresume;
+				$_SESSION["totalresume"] = count($rows) . "/" . $totalresume;
+			}
+
+			$pg = mikhmon_paginate(count($rows));
+
+			for ($i = $pg["start"]; $i < $pg["end"]; $i++) {
+				$getname = $rows[$i];
+				echo "<tr>";
+				echo "<td>" . $getname[0] . "</td>";
+				echo "<td>" . $getname[1] . "</td>";
+				echo "<td>" . $getname[2] . "</td>";
+				echo "<td>" . $getname[7] . "</td>";
+				echo "<td>" . $getname[8] . "</td>";
+				echo "<td style='text-align:right;'>" . $getname[3] . "</td>";
+				echo "</tr>";
+			}
+			if (count($rows) == 0) {
+				echo "<tr><td colspan='6' class='text-center text-grey'>Belum ada data penjualan.</td></tr>";
 			}
 
 			?>
 			</tbody>
 			</table>
 		</div>
+		<?php mikhmon_pagination_nav($pg); ?>
 </div>
 </div>
 </div>

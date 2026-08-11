@@ -24,51 +24,61 @@ if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
 
-  if ($prof == "all") {
-    $getuser = $API->comm("/ip/hotspot/user/print");
-    $TotalReg = count($getuser);
+  require_once __DIR__ . '/../include/pagination.php';
 
-    $counttuser = $API->comm("/ip/hotspot/user/print", array(
-      "count-only" => ""
+  // Hanya kolom di bawah ini yang dipakai saat merender. Tanpa .proplist router
+  // ikut mengirim seluruh properti user (address, email, routes, limit-bytes-in,
+  // limit-bytes-out, dan lain-lain) untuk SETIAP baris.
+  $uprops = ".id,server,name,password,profile,mac-address,uptime,bytes-in,bytes-out,comment,disabled,limit-uptime,limit-bytes-total";
+
+  if ($prof == "all") {
+    $getuser = $API->comm("/ip/hotspot/user/print", array(
+      ".proplist" => "$uprops",
     ));
 
   } elseif ($prof != "all") {
     $getuser = $API->comm("/ip/hotspot/user/print", array(
       "?profile" => "$prof",
-    ));
-    $TotalReg = count($getuser);
-
-    $counttuser = $API->comm("/ip/hotspot/user/print", array(
-      "count-only" => "",
-      "?profile" => "$prof",
+      ".proplist" => "$uprops",
     ));
 
   }
   if ($comm != "") {
     $getuser = $API->comm("/ip/hotspot/user/print", array(
       "?comment" => "$comm",
-    //"?uptime" => "00:00:00"
+      ".proplist" => "$uprops",
     ));
-    $TotalReg = count($getuser);
 
-    $counttuser = $API->comm("/ip/hotspot/user/print", array(
-      "count-only" => "",
-      "?comment" => "$comm",
-    ));
-    
   }
   $exp = $_GET['exp'];
   if ($exp != "") {
     $getuser = $API->comm("/ip/hotspot/user/print", array(
       "?limit-uptime" => "1s",
+      ".proplist" => "$uprops",
     ));
-    
-    $counttuser = $API->comm("/ip/hotspot/user/print", array(
-      "count-only" => "",
-      "?limit-uptime" => "1s",
-    ));
-    
+
   }
+  if (!is_array($getuser)) {
+    $getuser = array();
+  }
+
+  // Daftar comment di bawah dibangun dari SELURUH hasil, bukan cuma halaman
+  // yang tampil, jadi simpan salinannya sebelum apa pun disaring.
+  $alluser = $getuser;
+
+  // Pencarian dijalankan di PHP, tapi tetap mencakup semua baris — bukan hanya
+  // 50 yang terlihat. Tanpa ini, mencari voucher jadi mustahil begitu tabelnya
+  // dipaginasi. RouterOS API tidak menyediakan pencarian substring.
+  $cari = isset($_GET['cari']) ? $_GET['cari'] : "";
+  if ($cari != "") {
+    $getuser = mikhmon_search($getuser, $cari, array("name", "comment", "profile", "mac-address", "server"));
+  }
+
+  // Jumlah di header: hasil pencarian bila sedang mencari, kalau tidak ya total.
+  $counttuser = count($getuser);
+
+  $pg = mikhmon_paginate(count($getuser));
+
   $getprofile = $API->comm("/ip/hotspot/user/profile/print");
   $TotalReg2 = count($getprofile);
 }
@@ -81,8 +91,11 @@ if (!isset($_SESSION["mikhmon"])) {
     <h3><i class="fa fa-users"></i> <?= $_users ?>
       <span style="font-size: 14px">
         <?php
-        if ($counttuser == 0) {
-          echo "<script>window.location='./?hotspot=users&profile=all&session=" . $session . "</script>";
+        // Pantulan ke "all" hanya berlaku bila filter profile/comment memang
+        // kosong. Saat sedang mencari, hasil nol harus tetap ditampilkan —
+        // kalau tidak, user terlempar keluar begitu kata kuncinya tidak cocok.
+        if (count($alluser) == 0 && $cari == "" && ($prof != "all" || $comm != "" || $exp != "")) {
+          echo "<script>window.location='./?hotspot=users&profile=all&session=" . $session . "'</script>";
         } ?>
          &nbsp; | &nbsp; <a href="./?hotspot-user=add&session=<?= $session; ?>" title="Add User"><i class="fa fa-user-plus"></i> <?= $_add ?></a>
         &nbsp; | &nbsp; <a href="./?hotspot-user=generate&session=<?= $session; ?>" title="Generate User"><i class="fa fa-users"></i> <?= $_generate ?></a>
@@ -97,7 +110,20 @@ if (!isset($_SESSION["mikhmon"])) {
    <div class="col-6 pd-t-5 pd-b-5">
   <div class="input-group">
     <div class="input-group-4 col-box-4">
-      <input id="filterTable" type="text" style="padding:5.8px;" class="group-item group-item-l" placeholder="<?= $_search ?>">
+      <?php
+      // Form GET supaya Enter menjalankan pencarian di sisi server (mencakup
+      // semua data). Id-nya dipertahankan agar filter cepat berbasis JS di
+      // index.php tetap bekerja untuk menyaring baris yang sedang tampil.
+      ?>
+      <form method="get" action="./" style="margin:0;">
+        <input type="hidden" name="hotspot" value="users">
+        <input type="hidden" name="session" value="<?= $session; ?>">
+        <?php if ($prof != "") { ?><input type="hidden" name="profile" value="<?= htmlspecialchars($prof); ?>"><?php } ?>
+        <?php if ($comm != "") { ?><input type="hidden" name="comment" value="<?= htmlspecialchars($comm); ?>"><?php } ?>
+        <?php if ($exp != "") { ?><input type="hidden" name="exp" value="<?= htmlspecialchars($exp); ?>"><?php } ?>
+        <input id="filterTable" name="cari" type="text" style="padding:5.8px;" class="group-item group-item-l"
+               placeholder="<?= $_search ?>" value="<?= htmlspecialchars($cari); ?>" title="Tekan Enter untuk mencari di seluruh data">
+      </form>
     </div>
     <div class="input-group-4 col-box-4">
       <select style="padding:5px;" class="group-item group-item-m" onchange="location = this.value; loader()" title="Filter by Profile">
@@ -118,10 +144,13 @@ if (!isset($_SESSION["mikhmon"])) {
     } else {
       echo "<option value=''>".$_comment."</option>";
     }
-    $TotalReg = count($getuser);
-    for ($i = 0; $i < $TotalReg; $i++) {
-      $ucomment = $getuser[$i]['comment'];
-      $uprofile = $getuser[$i]['profile'];
+    // Dibangun dari $alluser (seluruh hasil), bukan dari halaman yang tampil —
+    // kalau tidak, daftar comment ikut menyusut tiap ganti halaman.
+    $TotalAll = count($alluser);
+    $acomment = "";
+    for ($i = 0; $i < $TotalAll; $i++) {
+      $ucomment = $alluser[$i]['comment'];
+      $uprofile = $alluser[$i]['profile'];
       $acomment .= ",".$ucomment."#". $uprofile;
     }
 
@@ -189,7 +218,7 @@ if (!isset($_SESSION["mikhmon"])) {
   </thead>
   <tbody id="tbody">
 <?php
-for ($i = 0; $i < $TotalReg; $i++) {
+for ($i = $pg['start']; $i < $pg['end']; $i++) {
   $userdetails = $getuser[$i];
   $uid = $userdetails['.id'];
   $userver = $userdetails['server'];
@@ -255,11 +284,17 @@ for ($i = 0; $i < $TotalReg; $i++) {
 
 
 }
+if ($pg['total'] == 0) {
+  echo "<tr><td colspan='10' class='text-center text-grey'>"
+     . ($cari != "" ? "Tidak ada hasil untuk \"" . htmlspecialchars($cari) . "\"." : "Belum ada data.")
+     . "</td></tr>";
+}
 ?>
   </tr>
   </tbody>
 </table>
 </div>
+<?php mikhmon_pagination_nav($pg); ?>
 </div>
 </div>
 </div>

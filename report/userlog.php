@@ -22,6 +22,8 @@ if (!isset($_SESSION["mikhmon"])) {
 	header("Location:../admin.php?id=login");
 } else {
 
+	require_once __DIR__ . '/../include/pagination.php';
+
 	$idhr = $_GET['idhr'];
 	$idbl = $_GET['idbl'];
 	$remdata = ($_POST['remdata']);
@@ -216,8 +218,9 @@ if (!isset($_SESSION["mikhmon"])) {
 				<tbody>
 				<?php
 			$TotalReg = count($ARRAY);
+			$pg = mikhmon_paginate($TotalReg);
 
-			for ($i = 0; $i < $TotalReg; $i++) {
+			for ($i = $pg['start']; $i < $pg['end']; $i++) {
 				$regtable = $ARRAY[$i];
 				echo "<tr>";
 				echo "<td>";
@@ -251,6 +254,7 @@ if (!isset($_SESSION["mikhmon"])) {
 				</tbody>
 			</table>
 		</div>
+		<?php mikhmon_pagination_nav($pg); ?>
 </div>
 </div>
 </div>

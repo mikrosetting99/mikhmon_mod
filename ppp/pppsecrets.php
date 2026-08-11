@@ -22,14 +22,31 @@ if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
 
+  require_once __DIR__ . '/../include/pagination.php';
+
   $fprofile = $_GET['pprofile'];
 
+  // Hanya kolom ini yang dirender; tanpa .proplist router ikut mengirim seluruh
+  // properti secret (caller-id, routes, ipv6, limit-bytes, dan lain-lain).
+  $sprops = ".id,name,password,service,profile,remote-address,comment,disabled";
+
   if ($fprofile != "" && $fprofile != "all") {
-    $getsecret = $API->comm("/ppp/secret/print", array("?profile" => "$fprofile"));
+    $getsecret = $API->comm("/ppp/secret/print", array("?profile" => "$fprofile", ".proplist" => "$sprops"));
   } else {
-    $getsecret = $API->comm("/ppp/secret/print");
+    $getsecret = $API->comm("/ppp/secret/print", array(".proplist" => "$sprops"));
   }
+  if (!is_array($getsecret)) {
+    $getsecret = array();
+  }
+
+  // Pencarian di sisi PHP tapi mencakup seluruh baris, bukan hanya yang tampil.
+  $cari = isset($_GET['cari']) ? $_GET['cari'] : "";
+  if ($cari != "") {
+    $getsecret = mikhmon_search($getsecret, $cari, array("name", "comment", "profile", "remote-address"));
+  }
+
   $TotalReg = count($getsecret);
+  $pg = mikhmon_paginate($TotalReg);
 
   // Daftar user yang sedang online dipakai untuk menandai baris.
   $getactive = $API->comm("/ppp/active/print");
@@ -55,6 +72,13 @@ if (!isset($_SESSION["mikhmon"])) {
             <a class="btn" href="./?ppp=secrets&session=<?= $session; ?>"><i class="fa fa-refresh"></i></a>
           </div>
           <div class="col-6">
+            <form method="get" action="./" style="margin:0 0 5px 0;">
+              <input type="hidden" name="ppp" value="secrets">
+              <input type="hidden" name="session" value="<?= $session; ?>">
+              <?php if ($fprofile != "") { ?><input type="hidden" name="pprofile" value="<?= htmlspecialchars($fprofile); ?>"><?php } ?>
+              <input class="form-control" name="cari" type="text" value="<?= htmlspecialchars($cari); ?>"
+                     placeholder="<?= $_search ?> — tekan Enter">
+            </form>
             <div class="input-group">
               <div class="input-group-9">
                 <select class="group-item group-item-l" id="fprofile">
@@ -87,7 +111,12 @@ if (!isset($_SESSION["mikhmon"])) {
             </thead>
             <tbody>
 <?php
-  for ($i = 0; $i < $TotalReg; $i++) {
+  if ($TotalReg == 0) {
+    echo "<tr><td colspan='8' class='text-center text-grey'>"
+       . ($cari != "" ? "Tidak ada hasil untuk \"" . htmlspecialchars($cari) . "\"." : "Belum ada user PPPoE.")
+       . "</td></tr>";
+  }
+  for ($i = $pg['start']; $i < $pg['end']; $i++) {
     $s        = $getsecret[$i];
     $sid      = $s['.id'];
     $sname    = $s['name'];
@@ -131,6 +160,7 @@ if (!isset($_SESSION["mikhmon"])) {
             </tbody>
           </table>
         </div>
+        <?php mikhmon_pagination_nav($pg); ?>
       </div>
     </div>
   </div>

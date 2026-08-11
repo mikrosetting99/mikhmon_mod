@@ -1,5 +1,39 @@
 ### MIKHMON V3
 
+> **Fork termodifikasi.** Repo ini adalah Mikhmon v3.20 (karya Laksamadi Guko,
+> [laksa19/mikhmonv3](https://github.com/laksa19/mikhmonv3), GPL-2) dengan tambahan
+> dukungan **RouterOS v7**. Lihat [Dukungan RouterOS v6 & v7](#dukungan-routeros-v6--v7).
+
+#### Dukungan RouterOS v6 & v7
+
+Mikhmon asli hanya bekerja di RouterOS v6. Di RouterOS **7.10+** format tanggal berubah
+dari `mmm/dd/yyyy` menjadi ISO `yyyy-mm-dd`, sedangkan script `on-login` dan scheduler
+bawaan Mikhmon memotong tanggal dengan posisi karakter tetap. Akibatnya penjaga
+`[:pick $comment 3] = "/"` pada background service tidak pernah terpenuhi, user hotspot
+tidak pernah dihapus, dan **voucher tidak pernah habis masa aktifnya**. Filter laporan
+penjualan bulanan (`owner=`) juga ikut rusak.
+
+Perbaikannya ada di [`include/roscompat.php`](include/roscompat.php): script yang
+dihasilkan mendeteksi format tanggal saat runtime dan **selalu** menulis komentar expired
+dalam format kanonik v6 `mmm/dd/yyyy hh:mm:ss`. Dengan begitu seluruh kode PHP Mikhmon
+tetap berjalan apa adanya di v6 maupun v7, termasuk bila router di-upgrade dari v6 ke v7.
+Background service juga membaca komentar format ISO, sehingga voucher yang terlanjur
+tercatat salah di router v7 ikut ter-expired tanpa perlu dibuat ulang.
+
+**Setelah update, profile lama harus disimpan ulang.** Script hanya ditulis saat profile
+di-save: buka tiap user profile di Mikhmon, lalu klik **Save** tanpa mengubah apa pun.
+
+#### Konfigurasi
+
+`include/config.php` tidak ikut di-commit karena berisi IP, user, dan password router
+dalam bentuk yang bisa dibalik. Saat deploy baru, salin templatnya:
+
+```
+cp include/config.php.default include/config.php
+```
+
+Login default: `mikhmon` / `1234` — segera ganti lewat menu Settings.
+
 #### Download update.zip
 [update.zip](https://raw.githubusercontent.com/laksa19/laksa19.github.io/master/download/update.zip){:target="_blank"}
 

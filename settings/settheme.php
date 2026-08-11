@@ -29,7 +29,7 @@ $mtheme = array(
     "blue",
     "green",
     "pink",
-    
+    "cobalt",
 );
 $theme_color = array(
     "#3a4149",
@@ -37,6 +37,7 @@ $theme_color = array(
     "#008BC9",
     "#4dbd74",
     "#e83e8c",
+    "#1e2530",
 );
 
 

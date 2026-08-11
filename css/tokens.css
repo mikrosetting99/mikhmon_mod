@@ -1,0 +1,105 @@
+/* Hallmark · genre: modern-minimal · theme: Cobalt (dark) · designed-as-app
+ * Portable design tokens for Mikhmon. Every value in the theme stylesheet
+ * references a token from this file by name — never a raw colour or size.
+ *
+ * Axes: paper=dark (L 21%) · display=grotesk-sans (Inter, roman) · accent=cool (235°)
+ */
+
+:root {
+  /* ---- Surfaces (dark, cool-neutral) ------------------------------- */
+  --color-paper:      oklch(20.5% 0.012 250);  /* app background          */
+  --color-paper-2:    oklch(24.5% 0.013 250);  /* cards, sidenav, navbar  */
+  --color-paper-3:    oklch(28.5% 0.014 250);  /* card headers, hover     */
+  --color-paper-4:    oklch(33%   0.015 250);  /* active, pressed         */
+  --color-well:       oklch(17%   0.012 250);  /* inputs, table stripe    */
+
+  /* ---- Ink --------------------------------------------------------- */
+  --color-ink:        oklch(96%   0.004 250);  /* primary text            */
+  --color-ink-2:      oklch(76%   0.011 250);  /* secondary text          */
+  --color-ink-3:      oklch(60%   0.012 250);  /* muted, placeholders     */
+
+  /* ---- Rules ------------------------------------------------------- */
+  --color-rule:       oklch(32%   0.014 250);  /* visible hairline        */
+  --color-rule-soft:  oklch(27%   0.013 250);  /* internal dividers       */
+
+  /* ---- Accent (preserves Mikhmon's #20a8d8 identity) ---------------- */
+  --color-accent:     oklch(70%   0.132 235);
+  --color-accent-hi:  oklch(78%   0.130 235);  /* hover                   */
+  --color-accent-lo:  oklch(62%   0.128 235);  /* pressed                 */
+  --color-accent-ink: oklch(17%   0.020 250);  /* text on accent fill     */
+  --color-accent-wash:oklch(70%   0.132 235 / 0.13);
+  --color-focus:      oklch(82%   0.120 235);
+
+  /* ---- Semantic ---------------------------------------------------- */
+  --color-success:    oklch(72%   0.150 152);
+  --color-warning:    oklch(80%   0.140  80);
+  --color-danger:     oklch(66%   0.180  25);
+  --color-info:       oklch(74%   0.110 220);
+  --color-purple:     oklch(65%   0.160 300);
+  --color-pink:       oklch(70%   0.170 355);
+  --color-indigo:     oklch(60%   0.160 275);
+  --color-teal:       oklch(74%   0.110 190);
+  --color-orange:     oklch(74%   0.160  55);
+  --color-yellow:     oklch(86%   0.150  95);
+
+  --color-success-ink: oklch(18% 0.03 152);
+  --color-warning-ink: oklch(20% 0.04  80);
+  --color-danger-ink:  oklch(98% 0.01  25);
+  --color-info-ink:    oklch(18% 0.03 220);
+
+  /* ---- Type -------------------------------------------------------- */
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system,
+               "Segoe UI Variable Text", "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono",
+               "SF Mono", Consolas, "Liberation Mono", monospace;
+
+  --text-xs:   0.6875rem;  /* 11px · table meta, badges      */
+  --text-sm:   0.75rem;    /* 12px · labels, footnotes       */
+  --text-base: 0.8125rem;  /* 13px · body, tables, controls  */
+  --text-md:   0.875rem;   /* 14px · nav, buttons            */
+  --text-lg:   1rem;       /* 16px · card titles             */
+  --text-xl:   1.25rem;    /* 20px · page titles             */
+  --text-2xl:  1.75rem;    /* 28px · dashboard figures       */
+  --text-3xl:  2.25rem;    /* 36px · hero figures            */
+
+  --tracking-tight: -0.011em;
+  --tracking-flat:   0;
+  --tracking-wide:   0.06em;   /* small-caps labels only     */
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semi:    600;
+  --weight-bold:    700;
+
+  /* ---- Space (4pt scale) ------------------------------------------- */
+  --space-3xs: 0.125rem;  /*  2px */
+  --space-2xs: 0.25rem;   /*  4px */
+  --space-xs:  0.375rem;  /*  6px */
+  --space-sm:  0.5rem;    /*  8px */
+  --space-md:  0.75rem;   /* 12px */
+  --space-lg:  1rem;      /* 16px */
+  --space-xl:  1.5rem;    /* 24px */
+  --space-2xl: 2rem;      /* 32px */
+
+  /* ---- Radius (tight — technical register) ------------------------- */
+  --radius-sm:    4px;
+  --radius-card:  6px;
+  --radius-input: 5px;
+  --radius-pill:  999px;
+
+  /* ---- Motion ------------------------------------------------------ */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:     cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-instant: 90ms;
+  --dur-short:   160ms;
+  --dur-medium:  240ms;
+
+  /* ---- Elevation (restrained — borders carry the hierarchy) -------- */
+  --shadow-raised: 0 1px 2px oklch(0% 0 0 / 0.28);
+  --shadow-float:  0 8px 24px oklch(0% 0 0 / 0.42);
+
+  /* ---- Chrome ------------------------------------------------------ */
+  --navbar-h:  50px;
+  --sidenav-w: 210px;
+}

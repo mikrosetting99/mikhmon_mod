@@ -1,0 +1,23 @@
+/* PACE — Cobalt theme. Loading line reads as the accent, 2px, top edge. */
+@import url("tokens.css");
+
+.pace {
+  -webkit-pointer-events: none;
+  pointer-events: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+.pace-inactive { display: none; }
+
+.pace .pace-progress {
+  background: var(--color-accent);
+  box-shadow: 0 0 8px var(--color-accent);
+  position: fixed;
+  z-index: 2000;
+  top: 0;
+  right: 100%;
+  width: 100%;
+  height: 2px;
+}

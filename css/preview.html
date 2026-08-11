@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mikhmon · Cobalt theme — component reference</title>
+<link rel="stylesheet" href="font-awesome/css/font-awesome.min.css">
+<link rel="stylesheet" href="mikhmon-ui.cobalt.min.css">
+<style>
+  /* Preview-only scaffolding — not part of the theme */
+  .pv-sec { margin: 0 0 var(--space-2xl); }
+  .pv-lbl { font-family: var(--font-mono); font-size: var(--text-xs);
+            letter-spacing: var(--tracking-wide); text-transform: uppercase;
+            color: var(--color-ink-3); margin: 0 0 var(--space-sm);
+            padding-bottom: var(--space-2xs); border-bottom: 1px solid var(--color-rule); }
+  .pv-rail { position: fixed; top: 51px; left: 0; bottom: 0; width: 210px;
+             background: var(--color-paper-2); border-right: 1px solid var(--color-rule);
+             overflow-y: auto; padding-top: var(--space-sm); }
+  .pv-main { margin-left: 210px; }
+  .pv-fig { font-size: var(--text-2xl); font-weight: 600; letter-spacing: -0.02em; }
+  .pv-cap { font-size: var(--text-xs); color: var(--color-ink-3);
+            letter-spacing: var(--tracking-wide); text-transform: uppercase; }
+  @media (max-width: 750px) { .pv-rail { display: none; } .pv-main { margin-left: 0; } }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="navbar-left">
+    <a href="#" class="navbar-hover"><i class="fa fa-bars"></i></a>
+    <a href="#" id="brand"><b>MIKHMON</b></a>
+  </div>
+  <div class="navbar-right">
+    <a href="#" class="navbar-hover"><i class="fa fa-sign-out"></i> Logout</a>
+    <a href="#" class="navbar-hover"><i class="fa fa-cog"></i> Settings</a>
+  </div>
+</div>
+
+<div class="sidenav pv-rail">
+  <a href="#" class="active"><i class="fa fa-dashboard"></i> Dashboard</a>
+  <a href="#"><i class="fa fa-users"></i> Hotspot Users</a>
+  <a href="#"><i class="fa fa-user-plus"></i> Generate</a>
+  <button class="dropdown-btn"><i class="fa fa-ticket"></i> Voucher <i class="fa fa-caret-down"></i></button>
+  <div class="dropdown-container menu-open">
+    <a href="#"><i class="fa fa-print"></i> Quick Print</a>
+    <a href="#"><i class="fa fa-list"></i> Templates</a>
+  </div>
+  <a href="#"><i class="fa fa-bar-chart"></i> Reports</a>
+  <a href="#"><i class="fa fa-server"></i> System</a>
+</div>
+
+<div class="pv-main">
+<div class="main-container">
+
+  <div class="alert bg-grey-dark mr-b-10">
+    <i class="fa fa-info-circle"></i>
+    Referensi komponen tema <b>Cobalt</b>. Halaman statis — semua angka di sini
+    data contoh, bukan data router. Buka tanpa login untuk memeriksa gaya.
+  </div>
+
+  <div class="pv-sec">
+    <p class="pv-lbl">Stat tiles · dashboard</p>
+    <div class="row">
+      <div class="col-3"><div class="box box-bordered bmh-75">
+        <div class="box-group"><div class="box-group-icon bg-primary"><i class="fa fa-users"></i></div>
+        <div class="box-group-area"><div class="pv-fig">1 240</div><div class="pv-cap">User aktif</div></div></div>
+      </div></div>
+      <div class="col-3"><div class="box box-bordered bmh-75">
+        <div class="box-group"><div class="box-group-icon bg-success"><i class="fa fa-money"></i></div>
+        <div class="box-group-area"><div class="pv-fig">4.850.000</div><div class="pv-cap">Penjualan hari ini</div></div></div>
+      </div></div>
+      <div class="col-3"><div class="box box-bordered bmh-75">
+        <div class="box-group"><div class="box-group-icon bg-warning"><i class="fa fa-hourglass-half"></i></div>
+        <div class="box-group-area"><div class="pv-fig">37</div><div class="pv-cap">Akan expired</div></div></div>
+      </div></div>
+      <div class="col-3"><div class="box box-bordered bmh-75">
+        <div class="box-group"><div class="box-group-icon bg-danger"><i class="fa fa-ban"></i></div>
+        <div class="box-group-area"><div class="pv-fig">12</div><div class="pv-cap">Expired</div></div></div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="pv-sec">
+    <p class="pv-lbl">Data table · table table-bordered table-hover</p>
+    <div class="card">
+      <div class="card-header"><h3><i class="fa fa-users"></i> Hotspot Users</h3></div>
+      <div class="card-body">
+        <div class="overflow">
+        <table class="table table-bordered table-hover text-nowrap">
+          <thead><tr><th>User</th><th>Profile</th><th>MAC</th><th>Uptime</th><th class="text-right">Data</th><th>Comment</th></tr></thead>
+          <tbody>
+            <tr><td><a href="#">vc-8842</a></td><td>30hari</td><td>AA:BB:CC:11:22:33</td><td>2d 04:11:20</td><td class="text-right">1.24 GB</td><td>aug/11/2026 21:35:10</td></tr>
+            <tr><td><a href="#">vc-8843</a></td><td>30hari</td><td>AA:BB:CC:11:22:44</td><td>0d 00:42:03</td><td class="text-right">184.2 MB</td><td>aug/12/2026 08:02:44</td></tr>
+            <tr><td><a href="#">up-budi</a></td><td>unlimited</td><td>—</td><td>11d 22:03:55</td><td class="text-right">42.80 GB</td><td class="text-danger">expired</td></tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-6">
+      <div class="pv-sec">
+        <p class="pv-lbl">Form layout · table sebagai grid label/input</p>
+        <div class="card">
+          <div class="card-header"><h3><i class="fa fa-plus"></i> Add User Profile</h3></div>
+          <div class="card-body">
+            <table class="table">
+              <tr><td class="align-middle">Name</td><td><input class="form-control" value="30hari"></td></tr>
+              <tr><td class="align-middle">Shared Users</td><td><input class="form-control" value="1"></td></tr>
+              <tr><td class="align-middle">Rate limit</td><td><input class="form-control" placeholder="512k/1M"></td></tr>
+              <tr><td class="align-middle">Expired Mode</td><td>
+                <select class="form-control"><option>Remove &amp; Record</option><option>Notice</option></select></td></tr>
+              <tr><td class="align-middle">Validity</td><td><input class="form-control" value="30d"></td></tr>
+            </table>
+            <a class="btn bg-primary" href="#"><i class="fa fa-save"></i> Save</a>
+            <a class="btn" href="#"><i class="fa fa-close"></i> Close</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6">
+      <div class="pv-sec">
+        <p class="pv-lbl">Input group · group-item-l / -md / -r</p>
+        <div class="card"><div class="card-body">
+          <div class="input-group">
+            <div class="input-group-4"><select class="group-item group-item-l"><option>Day</option></select></div>
+            <div class="input-group-4"><select class="group-item group-item-md"><option>August</option></select></div>
+            <div class="input-group-3"><select class="group-item group-item-md"><option>2026</option></select></div>
+            <div class="input-group-1"><div class="group-item group-item-r text-center pointer"><i class="fa fa-search"></i></div></div>
+          </div>
+          <div class="mr-t-10"></div>
+          <p class="pv-lbl mr-t-10">Field states</p>
+          <input class="form-control mr-b-5" placeholder="default">
+          <input class="form-control mr-b-5 is-error" value="nilai tidak valid">
+          <input class="form-control mr-b-5 is-success" value="tersimpan">
+          <input class="form-control mr-b-5" value="disabled" disabled>
+          <p class="pv-lbl mr-t-10">Progress</p>
+          <div class="progress mr-b-5"><div class="progress-bar-blue" style="width:68%"></div></div>
+          <div class="progress"><div class="progress-bar-red" style="width:91%"></div></div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pv-sec">
+    <p class="pv-lbl">Buttons · 8 state</p>
+    <div class="card"><div class="card-body">
+      <a class="btn bg-primary" href="#"><i class="fa fa-save"></i> Primary</a>
+      <a class="btn bg-success" href="#"><i class="fa fa-check"></i> Success</a>
+      <a class="btn bg-warning" href="#"><i class="fa fa-exclamation-triangle"></i> Warning</a>
+      <a class="btn bg-danger" href="#"><i class="fa fa-trash"></i> Danger</a>
+      <a class="btn" href="#"><i class="fa fa-refresh"></i> Neutral</a>
+      <button class="btn" disabled><i class="fa fa-lock"></i> Disabled</button>
+      <button class="btn"><i class="fa fa-circle-o-notch fa-spin"></i> Loading</button>
+    </div></div>
+  </div>
+
+  <div class="pv-sec">
+    <p class="pv-lbl">Alert &amp; badge</p>
+    <div class="alert bg-danger mr-b-5"><i class="fa fa-ban"></i> Invalid username or password.</div>
+    <div class="alert bg-success mr-b-5"><i class="fa fa-check"></i> User profile tersimpan.</div>
+    <div class="alert bg-warning"><i class="fa fa-exclamation-triangle"></i> 37 voucher akan expired dalam 24 jam.</div>
+  </div>
+
+</div>
+</div>
+</body>
+</html>

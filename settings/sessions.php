@@ -46,8 +46,7 @@ if (!isset($_SESSION["mikhmon"])) {
   $gen = '<?php $qrbt="' . $qrbt . '";?>';
           $key = './include/quickbt.php';
           $handle = fopen($key, 'w') or die('Cannot open file:  ' . $key);
-          $data = $gen;
-          fwrite($handle, $data);
+          fwrite($handle, $gen);
     echo "<script>window.location='./admin.php?id=sessions'</script>";
   }
 

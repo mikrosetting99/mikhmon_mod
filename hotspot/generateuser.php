@@ -100,8 +100,7 @@ date_default_timezone_set($_SESSION['timezone']);
 		$gen = '<?php $genu="'.encrypt($gentemp).'";?>';
 		$temp = './voucher/temp.php';
 		$handle = fopen($temp, 'w') or die('Cannot open file:  ' . $temp);
-		$data = $gen;
-		fwrite($handle, $data);
+		fwrite($handle, $gen);
 
 		$a = array("1" => "", "", 1, 2, 2, 3, 3, 4);
 

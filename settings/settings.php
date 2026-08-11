@@ -24,12 +24,14 @@ if (!isset($_SESSION["mikhmon"])) {
 } else {
 
   if ($id == "settings" && explode("-",$router)[0] == "new") {
-    $data = '$data';
+    // Literal "$data" untuk ditukar ke dalam config.php. Namanya sengaja bukan
+    // $data supaya tidak menimpa $data global milik include/config.php.
+    $dvar = '$data';
     $f = fopen('./include/config.php', 'a');
     fwrite($f, "\n'$'data['".$router."'] = array ('1'=>'".$router."!','".$router."@|@','".$router."#|#','".$router."%','".$router."^','".$router."&Rp','".$router."*10','".$router."(1','".$router.")','".$router."=10','".$router."@!@disable');");
     fclose($f);
     $search = "'$'data";
-    $replace = (string)"$data";
+    $replace = (string)$dvar;
     $file = file("./include/config.php");
     $content = file_get_contents("./include/config.php");
     $newcontent = str_replace((string)$search, (string)$replace, "$content");

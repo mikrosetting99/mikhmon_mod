@@ -282,6 +282,12 @@ class RouterosAPI
     {
         $RESPONSE     = array();
         $receiveddone = false;
+        // Tanpa socket yang hidup, fread() di bawah akan melempar TypeError di
+        // PHP 8. Kembalikan array kosong: pemanggil sudah menangani hasil kosong.
+        if (!is_resource($this->socket)) {
+            $this->debug('Read dibatalkan: tidak terhubung ke RouterOS.');
+            return $RESPONSE;
+        }
         while (true) {
             // Read the first byte of input which gives us some or all of the length
             // of the remaining reply.
@@ -367,6 +373,14 @@ class RouterosAPI
      */
     public function write($command, $param2 = true)
     {
+        // Bila koneksi ke router gagal, $this->socket bernilai false. PHP 7 hanya
+        // memberi warning saat fwrite() dipanggil pada nilai bukan resource;
+        // PHP 8 melempar TypeError sehingga seluruh halaman jadi blank 500.
+        // Berhenti lebih awal supaya halaman tetap tampil, hanya tanpa data.
+        if (!is_resource($this->socket)) {
+            $this->debug('Write dibatalkan: tidak terhubung ke RouterOS.');
+            return false;
+        }
         if ($command) {
             $data = explode("\n", $command);
             foreach ($data as $com) {

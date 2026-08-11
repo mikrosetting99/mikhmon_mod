@@ -32,8 +32,7 @@ if (empty($getlang)) {
         $gen = '<?php $langid="' . $getlang . '";?>';
         $slang = './include/lang.php';
         $handle = fopen($slang, 'w') or die('Cannot open file:  ' . $slang);
-        $data = $gen;
-        fwrite($handle, $data);
+        fwrite($handle, $gen);
         $_SESSION['lang'] = $getlang;
         echo '<center><div style="padding-top:10%;"><i class="fa fa-circle-o-notch fa-spin" style="font-size:40px"></i></div><h3>Load '.$getlang.' lang...</h3></center>';
         echo "<script>window.location='" . $url2 . "'</script>";

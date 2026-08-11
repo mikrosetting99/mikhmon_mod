@@ -50,9 +50,11 @@ if (isset($_POST['save'])) {
 	$template = './voucher/' . $telplatet . '.php';
 	$handle = fopen($template, 'w') or die('Cannot open file:  ' . $template);
 
-	$data = ($_POST['editor']);
+	// Jangan pakai nama $data: bentrok dengan $data global dari include/config.php.
+	// Di PHP 8 menulis offset pada string melempar TypeError, bukan sekadar warning.
+	$tplsource = ($_POST['editor']);
 
-	fwrite($handle, $data);
+	fwrite($handle, $tplsource);
 		
 		//header("Location:$url");
 }

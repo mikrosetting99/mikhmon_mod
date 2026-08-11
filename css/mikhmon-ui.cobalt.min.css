@@ -36,7 +36,15 @@
    ================================================================== */
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: clip;
+  /* Tells the browser to paint NATIVE controls dark — checkboxes, radios,
+     select popups, scrollbars. Without it an unchecked checkbox renders as a
+     white square on the dark surface, which is what the show/hide-password
+     toggle looked like. */
+  color-scheme: dark;
+}
 
 body {
   margin: 0;
@@ -118,9 +126,36 @@ input, select, textarea { font-family: inherit; margin: auto; }
    ================================================================== */
 .wraprer { width: 100%; }
 
+/* navbar + sidenav are FIXED chrome; #main is offset to clear them.
+   Dropping these turns the whole app into a normal-flow stack. */
+#notify, .navbar, .sidenav { position: fixed; }
+
+#main {
+  margin-top: 55px;
+  transition: margin-left var(--dur-medium) var(--ease-out);
+}
+
+#brand {
+  min-width: 165px;
+  font-weight: var(--weight-bold);
+  vertical-align: middle;
+  letter-spacing: var(--tracking-tight);
+}
+#brand span { font-size: 18px; line-height: 10%; }
+
+#notify, #temp { display: none; }
+#notify {
+  box-sizing: border-box;
+  z-index: 1000;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-paper-3);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-float);
+}
+
 .navbar {
   overflow: hidden;
-  position: relative;
   z-index: 9;
   top: 0;
   width: 100%;
@@ -174,6 +209,7 @@ input, select, textarea { font-family: inherit; margin: auto; }
   z-index: 9;
   top: 0;
   left: 0;
+  padding-bottom: var(--space-2xl);
   margin-top: calc(var(--navbar-h) + 1px);
   overflow-x: hidden;
   overflow-y: auto;
@@ -452,6 +488,44 @@ select.form-control, select.group-item {
 .plch-center::placeholder { text-align: center; }
 .plch-center::-webkit-input-placeholder { text-align: center; }
 
+/* Submit/button inputs and clickable spans are CONTROLS, not fields. Mikhmon
+   dresses them in .group-item so they land in an input group; they must still
+   read as pressable. */
+input[type="submit"], input[type="button"], input[type="reset"] {
+  cursor: pointer;
+  font-weight: var(--weight-medium);
+}
+input[type="submit"].group-item,
+input[type="button"].group-item,
+span.group-item {
+  text-align: center;
+  background-color: var(--color-paper-3);
+  color: var(--color-ink);
+  cursor: pointer;
+  font-weight: var(--weight-medium);
+}
+input[type="submit"].group-item:hover,
+input[type="button"].group-item:hover,
+span.group-item:hover {
+  background-color: var(--color-paper-4);
+  border-color: var(--color-ink-3);
+}
+input[type="submit"].group-item:active,
+input[type="button"].group-item:active,
+span.group-item:active { transform: translateY(1px); }
+
+/* Native checkboxes/radios — the show/hide-password toggle sits inside a
+   .group-item wrapper and would otherwise render as a raw white square. */
+input[type="checkbox"], input[type="radio"] {
+  accent-color: var(--color-accent);
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  vertical-align: middle;
+  cursor: pointer;
+}
+.group-item > input[type="checkbox"] { display: inline-block; }
+
 .input-group { display: block; }
 .input-group-1  { width: 8.3333%; }   .input-group-2  { width: 16.6667%; }
 .input-group-3  { width: 25%; }       .input-group-4  { width: 33.3333%; }
@@ -619,28 +693,67 @@ select.form-control, select.group-item {
 [class*="bg-"] { text-decoration: none; }
 [class*="text-"] { text-decoration: none; }
 
+/* Anything sitting on a tinted surface takes that surface's ink. Without this,
+   links keep the cyan accent and become unreadable on yellow/pink/teal tiles. */
+[class*="bg-"] a,
+[class*="bg-"] .pointer { color: inherit; }
+[class*="bg-"] a:hover { color: inherit; text-decoration: underline; }
+
+/* Each fill also publishes its hue as --tint, so large surfaces can carry the
+   colour as a marker instead of a flood (see `.box[class*="bg-"]` below). */
 .bg-primary,
-.bg-blue       { background-color: var(--color-accent);  color: var(--color-accent-ink); }
-.bg-light-blue { background-color: var(--color-info);    color: var(--color-info-ink); }
+.bg-blue       { --tint: var(--color-accent);  background-color: var(--tint); color: var(--color-accent-ink); }
+.bg-light-blue { --tint: var(--color-info);    background-color: var(--tint); color: var(--color-info-ink); }
 .bg-info,
-.bg-cyan       { background-color: var(--color-info);    color: var(--color-info-ink); }
+.bg-cyan       { --tint: var(--color-info);    background-color: var(--tint); color: var(--color-info-ink); }
 .bg-success,
-.bg-green      { background-color: var(--color-success); color: var(--color-success-ink); }
+.bg-green      { --tint: var(--color-success); background-color: var(--tint); color: var(--color-success-ink); }
 .bg-warning,
-.bg-orange     { background-color: var(--color-warning); color: var(--color-warning-ink); }
-.bg-yellow     { background-color: var(--color-yellow);  color: var(--color-warning-ink); }
+.bg-orange     { --tint: var(--color-warning); background-color: var(--tint); color: var(--color-warning-ink); }
+.bg-yellow     { --tint: var(--color-yellow);  background-color: var(--tint); color: var(--color-warning-ink); }
 .bg-danger,
-.bg-red        { background-color: var(--color-danger);  color: var(--color-danger-ink); }
-.bg-pink       { background-color: var(--color-pink);    color: var(--color-accent-ink); }
-.bg-purple     { background-color: var(--color-purple);  color: var(--color-ink); }
-.bg-indigo     { background-color: var(--color-indigo);  color: var(--color-ink); }
-.bg-teal       { background-color: var(--color-teal);    color: var(--color-accent-ink); }
+.bg-red        { --tint: var(--color-danger);  background-color: var(--tint); color: var(--color-danger-ink); }
+.bg-pink       { --tint: var(--color-pink);    background-color: var(--tint); color: var(--color-accent-ink); }
+.bg-purple     { --tint: var(--color-purple);  background-color: var(--tint); color: var(--color-ink); }
+.bg-indigo     { --tint: var(--color-indigo);  background-color: var(--tint); color: var(--color-ink); }
+.bg-teal       { --tint: var(--color-teal);    background-color: var(--tint); color: var(--color-accent-ink); }
 .bg-secondary,
-.bg-grey       { background-color: var(--color-paper-4); color: var(--color-ink); }
-.bg-grey-dark  { background-color: var(--color-paper-3); color: var(--color-ink); }
-.bg-dark       { background-color: var(--color-well);    color: var(--color-ink); }
-.bg-light      { background-color: var(--color-paper-3); color: var(--color-ink); }
-.bg-white      { background-color: var(--color-ink);     color: var(--color-paper); }
+.bg-grey       { --tint: var(--color-ink-3);   background-color: var(--color-paper-4); color: var(--color-ink); }
+.bg-grey-dark  { --tint: var(--color-ink-3);   background-color: var(--color-paper-3); color: var(--color-ink); }
+.bg-dark       { --tint: var(--color-ink-3);   background-color: var(--color-well);    color: var(--color-ink); }
+.bg-light      { --tint: var(--color-ink-2);   background-color: var(--color-paper-3); color: var(--color-ink); }
+.bg-white      { --tint: var(--color-ink);     background-color: var(--color-ink);     color: var(--color-paper); }
+
+/* Router tiles (settings/sessions.php picks a RANDOM fill per router). As a
+   full-bleed flood on a large surface that reads as noise. Keep the colour as a
+   left spine + icon chip so it still works as a wayfinding marker, and let the
+   text sit on the normal card surface where it stays readable. */
+.box[class*="bg-"] {
+  background-color: var(--color-paper-2);
+  color: var(--color-ink);
+  border: 1px solid var(--color-rule);
+  border-left: 3px solid var(--tint, var(--color-accent));
+}
+.box[class*="bg-"] a,
+.box[class*="bg-"] .pointer { color: var(--color-ink-2); }
+.box[class*="bg-"] a:hover,
+.box[class*="bg-"] .pointer:hover { color: var(--color-ink); text-decoration: underline; }
+/* The category colour rides the icon and the left spine — no filled block.
+   `.box-group-icon` is a table-cell, so a background would stretch to the row
+   height and read as a slab rather than a chip. `width: 1%` shrinks the cell
+   to its content. */
+.box[class*="bg-"] .box-group-icon {
+  width: 1%;
+  padding: 0 var(--space-lg) 0 var(--space-sm);
+  font-size: 30px;
+  background: none;
+  color: var(--tint, var(--color-accent));
+  opacity: 1;
+}
+/* The icon often sits inside a `.connect.pointer` span, which would otherwise
+   pick up the muted link colour set above. */
+.box[class*="bg-"] .box-group-icon a,
+.box[class*="bg-"] .box-group-icon .pointer { color: inherit; }
 
 .text-primary,
 .text-blue       { color: var(--color-accent); }

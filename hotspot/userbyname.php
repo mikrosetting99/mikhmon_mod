@@ -18,6 +18,7 @@
 
 // hide all error
 error_reporting(0);
+require_once __DIR__ . '/../include/roscompat.php';
 
 if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
@@ -79,13 +80,14 @@ if (!isset($_SESSION["mikhmon"])) {
     echo "<script>window.location='./?hotspot=users&profile=all&session=" . $session . "'</script>";
   }
 
-  if((substr($ucomment,3,1) == "/" && substr($ucomment,6,1) == "/")){
+  if(ros_is_exp_comment($ucomment)){
     $commt = 'disabled';
     $comment2t = 'text';
     $_tcomment = $_expired;
     $_tcomment2 = $_comment;
-    $ucomment2 = substr($ucomment,21, (strlen($ucomment)-21));
-    $ucomment =  substr($ucomment,0,20);
+    $explen = ros_exp_comment_len($ucomment);
+    $ucomment2 = substr($ucomment,$explen + 1, (strlen($ucomment)-($explen + 1)));
+    $ucomment =  substr($ucomment,0,$explen);
   }else{
     $comment2t = 'hidden';
     $_tcomment = $_comment;
@@ -242,9 +244,9 @@ if ($currency == in_array($currency, $cekindo['indo'])) {
       $usermode = "up-";
     }
     
-    if((substr($hcomment,3,1) == "/" && substr($hcomment,6,1) == "/")){
+    if(ros_is_exp_comment($hcomment)){
       $comment = $hcomment." ".$comment2;
-    }elseif((substr($comment,3,1) == "/" && substr($comment,6,1) == "/")){
+    }elseif(ros_is_exp_comment($comment)){
       $comment = $comment." ".$comment2;
     }elseif(substr($comment,0,3) == "vc-" || substr($comment,0,3) == "up-"){
       $comment = $comment;

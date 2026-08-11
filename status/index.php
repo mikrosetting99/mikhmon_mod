@@ -24,8 +24,9 @@ $session = $_GET['session'];
 require('../lib/routeros_api.class.php');
 include('../lib/formatbytesbites.php');
 include('../include/config.php');
+require_once(__DIR__ . '/../include/roscompat.php');
 
-// theme  
+// theme
 include('../include/theme.php');
 
 $iphost = explode('!', $data[$session][1])[1];
@@ -119,12 +120,12 @@ if (isset($_POST['nama'])) {
 
 	}
   
-	if ($user == "" || (substr($exp,3,1) != "/" && substr($exp,6,1) != "/")) {
+	if ($user == "" || !ros_is_exp_comment($exp)) {
 		echo "<h3 class='text-center'>User <i style='color:#008CCA;'>$name</i> $title[9]</h3>";
 	} elseif ($limitup == "1s" || $uptime == $limitup || $getbyteo == $limitbyte) {
 		echo "<h3 class='text-center'>User <i style='color:#008CCA;'>$name</i> $title[10]</h3>";
 	}
-	if ($user == "" || (substr($exp,3,1) != "/" && substr($exp,6,1) != "/")) {
+	if ($user == "" || !ros_is_exp_comment($exp)) {
 	} else {
 		?>
 <section>

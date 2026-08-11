@@ -22,7 +22,8 @@ $session = $_GET['session'];
 $uname = $_GET['name'];
 
 include_once('../include/config.php');
-$iphost=explode('!',$data[$session][1])[1]; 
+require_once(__DIR__ . '/../include/roscompat.php');
+$iphost=explode('!',$data[$session][1])[1];
 $userhost=explode('@|@',$data[$session][2])[1];
 $passwdhost=explode('#|#',$data[$session][3])[1]; 
 $hotspotname=explode('%',$data[$session][4])[1]; 
@@ -39,7 +40,7 @@ $API->connect( $iphost, $userhost, decrypt($passwdhost));
 if($uname != ""){
 	$getname = $API->comm("/ip/hotspot/user/print", array("?name" => "$uname"));
   	$exp = $getname[0]['comment'];
-	if(substr($exp,3,1) == "/" && substr($exp,6,1) == "/"){
+	if(ros_is_exp_comment($exp)){
 		$exp = $exp;
 	}else{
 	$getname = $API->comm("/sys/sch/print", array("?name" => "$uname"));

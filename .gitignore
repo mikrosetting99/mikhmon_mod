@@ -1,0 +1,16 @@
+# Konfigurasi sesi router.
+# File ini ditulis ulang oleh Mikhmon setiap kali session router ditambah/diubah,
+# dan berisi IP, user, serta password router dalam bentuk terenkripsi.
+# Kunci enkripsinya ada di dalam source code, jadi isinya setara plaintext bagi
+# siapa pun yang punya akses ke repo ini. JANGAN di-commit.
+# Salin include/config.php.default -> include/config.php saat deploy baru.
+/include/config.php
+
+# Logo yang diupload per session lewat menu Settings
+/img/logo-*.png
+
+# Artefak lokal
+*.log
+Thumbs.db
+desktop.ini
+.DS_Store

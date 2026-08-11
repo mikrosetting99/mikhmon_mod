@@ -279,7 +279,10 @@ include('../lang/'.$langid.'.php');
   }
   
   // get hotspot log
-  $getlog = $API->comm("/log/print", array("?topics" => "hotspot,info,debug", ));
+  // Hanya time dan message yang dipakai saat merender. Tanpa .proplist router
+  // ikut mengirim .id dan topics untuk SETIAP baris — sekitar 40% muatan
+  // terbuang, dan ini berjalan tiap siklus auto reload.
+  $getlog = $API->comm("/log/print", array("?topics" => "hotspot,info,debug", ".proplist" => "time,message", ));
   $log = array_reverse($getlog);
   //$THotspotLog = count($getlog);
 
@@ -304,7 +307,7 @@ include('../lang/'.$langid.'.php');
                         <table class="table table-sm table-bordered table-hover" style="font-size: 12px; td.padding:2px;">
                           <thead>
                             <tr>
-                            <th><?= $_time .$THotspotLog; ?></th>
+                            <th><?= $_time ?></th>
                             <th><?= $_users ?> (IP)</th>
                             <th><?= $_messages ?></th>
                             </tr>

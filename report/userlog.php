@@ -26,9 +26,14 @@ if (!isset($_SESSION["mikhmon"])) {
 	$idbl = $_GET['idbl'];
 	$remdata = ($_POST['remdata']);
 
+	// $ARRAY hanya terisi bila router terhubung. Tanpa nilai awal, count($ARRAY)
+	// di bawah menerima null dan PHP 8 menjadikannya fatal — halaman blank saat
+	// router sedang mati.
+	$ARRAY = array();
+
 
 	if (strlen($idhr) > "0") {
-		if ($API->connect($iphost, $userhost, decrypt($passwdhost))) {
+		if ($API->connected) {
 			$API->write('/system/script/print', false);
 			$API->write('?=source=' . $idhr . '');
 			$ARRAY = $API->read();
@@ -38,7 +43,7 @@ if (!isset($_SESSION["mikhmon"])) {
 		$shf = "hidden";
 		$shd = "text";
 	} elseif (strlen($idbl) > "0") {
-		if ($API->connect($iphost, $userhost, decrypt($passwdhost))) {
+		if ($API->connected) {
 			$API->write('/system/script/print', false);
 			$API->write('?=owner=' . $idbl . '');
 			$ARRAY = $API->read();
@@ -48,7 +53,7 @@ if (!isset($_SESSION["mikhmon"])) {
 		$shf = "hidden";
 		$shd = "text";
 	} elseif ($idhr == "" || $idbl == "") {
-		if ($API->connect($iphost, $userhost, decrypt($passwdhost))) {
+		if ($API->connected) {
 			$API->write('/system/script/print', false);
 			$API->write('?=comment=mikhmon');
 			$ARRAY = $API->read();

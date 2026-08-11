@@ -22,8 +22,12 @@ if (!isset($_SESSION["mikhmon"])) {
 	header("Location:../admin.php?id=login");
 } else {
 
+	// Halaman ini merender seluruh baris, jadi jumlah baris memang tidak bisa
+	// dikurangi. Tapi hanya time dan message yang dipakai, sehingga .proplist
+	// mencegah router ikut mengirim .id dan topics untuk tiap baris.
 	$getlog = $API->comm("/log/print", array(
-		"?topics" => "hotspot,info,debug"
+		"?topics" => "hotspot,info,debug",
+		".proplist" => "time,message"
 	));
 	$log = array_reverse($getlog);
 	$TotalReg = count($getlog);

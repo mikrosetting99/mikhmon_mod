@@ -26,14 +26,12 @@ if (!isset($_SESSION["mikhmon"])) {
 
   $fprofile = $_GET['pprofile'];
 
-  // Hanya kolom ini yang dirender; tanpa .proplist router ikut mengirim seluruh
-  // properti secret (caller-id, routes, ipv6, limit-bytes, dan lain-lain).
-  $sprops = ".id,name,password,service,profile,remote-address,comment,disabled";
-
+  // .proplist sengaja tidak dipakai di sini — lihat catatan di hotspot/users.php.
+  // Risiko data tidak tampil lebih besar daripada hematnya.
   if ($fprofile != "" && $fprofile != "all") {
-    $getsecret = $API->comm("/ppp/secret/print", array("?profile" => "$fprofile", ".proplist" => "$sprops"));
+    $getsecret = $API->comm("/ppp/secret/print", array("?profile" => "$fprofile"));
   } else {
-    $getsecret = $API->comm("/ppp/secret/print", array(".proplist" => "$sprops"));
+    $getsecret = $API->comm("/ppp/secret/print");
   }
   if (!is_array($getsecret)) {
     $getsecret = array();

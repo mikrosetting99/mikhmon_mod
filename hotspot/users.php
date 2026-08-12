@@ -26,27 +26,23 @@ if (!isset($_SESSION["mikhmon"])) {
 
   require_once __DIR__ . '/../include/pagination.php';
 
-  // Hanya kolom di bawah ini yang dipakai saat merender. Tanpa .proplist router
-  // ikut mengirim seluruh properti user (address, email, routes, limit-bytes-in,
-  // limit-bytes-out, dan lain-lain) untuk SETIAP baris.
-  $uprops = ".id,server,name,password,profile,mac-address,uptime,bytes-in,bytes-out,comment,disabled,limit-uptime,limit-bytes-total";
-
+  // CATATAN: .proplist sempat dipakai di sini untuk menghemat lalu lintas, tapi
+  // dicabut. Perilakunya terhadap properti status read-only (uptime, bytes-in,
+  // bytes-out) tidak terverifikasi di RouterOS v6, dan bila router menolak query
+  // itu hasilnya kosong — voucher jadi tidak terlihat sama sekali. Menghemat
+  // beberapa kilobyte tidak sepadan dengan risiko data tidak tampil.
   if ($prof == "all") {
-    $getuser = $API->comm("/ip/hotspot/user/print", array(
-      ".proplist" => "$uprops",
-    ));
+    $getuser = $API->comm("/ip/hotspot/user/print");
 
   } elseif ($prof != "all") {
     $getuser = $API->comm("/ip/hotspot/user/print", array(
       "?profile" => "$prof",
-      ".proplist" => "$uprops",
     ));
 
   }
   if ($comm != "") {
     $getuser = $API->comm("/ip/hotspot/user/print", array(
       "?comment" => "$comm",
-      ".proplist" => "$uprops",
     ));
 
   }
@@ -54,7 +50,6 @@ if (!isset($_SESSION["mikhmon"])) {
   if ($exp != "") {
     $getuser = $API->comm("/ip/hotspot/user/print", array(
       "?limit-uptime" => "1s",
-      ".proplist" => "$uprops",
     ));
 
   }

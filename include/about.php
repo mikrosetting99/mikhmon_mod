@@ -46,7 +46,10 @@ if (!isset($_SESSION["mikhmon"])) {
         <h3><i class="fa fa-info-circle"></i> About</h3>
       </div>
       <div class="card-body">
-        <h3>MIKHMON V<?= $_SESSION['v']; ?></h3>
+        <h3>MIKHMON ROS7 &mdash; v<?= $_SESSION['v']; ?></h3>
+        <p style="color:#888;font-size:13px;margin-top:-6px;">
+          Fork dari Mikhmon v3.20 karya Laksamadi Guko, dengan dukungan RouterOS v7.
+        </p>
 <p>
   Aplikasi ini dipersembahkan untuk pengusaha hotspot di manapun Anda berada.
   Semoga makin sukses.

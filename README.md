@@ -1,8 +1,11 @@
-### MIKHMON V3
+### MIKHMON V3-ROS7
 
 > **Fork termodifikasi.** Repo ini adalah Mikhmon v3.20 (karya Laksamadi Guko,
 > [laksa19/mikhmonv3](https://github.com/laksa19/mikhmonv3), GPL-2) dengan tambahan
 > dukungan **RouterOS v7**. Lihat [Dukungan RouterOS v6 & v7](#dukungan-routeros-v6--v7).
+>
+> Tautan ke `laksa19/mikhmonv3` di dokumen ini menunjuk ke proyek aslinya dan
+> sengaja tidak diubah — itu atribusi ke pembuat asli, bukan alamat fork ini.
 
 #### Dukungan RouterOS v6 & v7
 

@@ -1,0 +1,122 @@
+/* Portable design tokens for Mikhmon — theme: Material (light).
+ * Same token NAMES as tokens.css (Cobalt) so the component stylesheet can be
+ * reused verbatim across themes — only the values change.
+ *
+ * Palette values are drawn from the official Material Design colour system
+ * (material.io) — named swatches like "Blue 700" / "Green 800" rather than
+ * hand-picked hex — plus Material 3's surface-container/elevation model:
+ * light surfaces, real drop shadows instead of hairlines carrying hierarchy.
+ */
+
+:root {
+  /* ---- Surfaces (light, Material "surface container" tones) --------- */
+  --color-paper:      #FFFBFE;  /* app background          */
+  --color-paper-2:    #FFFFFF;  /* cards, sidenav, navbar  */
+  --color-paper-3:    #F3EDF7;  /* card headers, hover     */
+  --color-paper-4:    #E8E0EB;  /* active, pressed         */
+  --color-well:       #ECE6F0;  /* inputs, table stripe    */
+
+  /* ---- Ink ----------------------------------------------------------- */
+  --color-ink:        #1C1B1F;  /* primary text            */
+  --color-ink-2:      #49454F;  /* secondary text          */
+  --color-ink-3:      #79747E;  /* muted, placeholders     */
+
+  /* ---- Rules ----------------------------------------------------------- */
+  --color-rule:       #CAC4D0;  /* visible hairline        */
+  --color-rule-soft:  #E7E0EC;  /* internal dividers       */
+
+  /* ---- Accent — official Material "Blue" swatches (700/500/900) ------ */
+  --color-accent:     #1976D2;  /* Blue 700                */
+  --color-accent-hi:  #2196F3;  /* Blue 500 · hover        */
+  --color-accent-lo:  #0D47A1;  /* Blue 900 · pressed      */
+  --color-accent-ink: #FFFFFF;  /* text on accent fill     */
+  --color-accent-wash: rgba(25, 118, 210, 0.13);
+  --color-focus:      #1976D2;
+
+  /* ---- Chrome fill (navbar) — a filled colour bar is Material's most
+         recognisable trait, so app chrome carries the brand colour instead
+         of sitting on the neutral card surface. ------------------------ */
+  --color-chrome:     #1976D2;  /* Blue 700                */
+  --color-chrome-ink: #FFFFFF;
+
+  /* ---- Semantic — official Material swatches ---------------------------
+         success Green 800 · warning Amber 700 · danger Red 700 ·
+         info Light Blue 700 · purple Purple 500 · pink Pink 700 ·
+         indigo Indigo 500 · teal Teal 700 · orange Deep Orange 700 ·
+         yellow Amber 300. --------------------------------------------- */
+  --color-success:    #2E7D32;
+  --color-warning:    #FFA000;
+  --color-danger:     #D32F2F;
+  --color-info:       #0288D1;
+  --color-purple:     #9C27B0;
+  --color-pink:       #C2185B;
+  --color-indigo:     #3F51B5;
+  --color-teal:       #00796B;
+  --color-orange:     #E64A19;
+  --color-yellow:     #FFD54F;
+
+  --color-success-ink: #FFFFFF;
+  --color-warning-ink: #1C1B1F;
+  --color-danger-ink:  #FFFFFF;
+  --color-info-ink:    #FFFFFF;
+
+  /* ---- Type -------------------------------------------------------- */
+  /* Self-hosted Inter stands in for Roboto — Mikhmon must not fetch fonts
+     from a CDN (it's used offline next to the router), and Inter/Roboto
+     share the same geometric-grotesk register. */
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system,
+               "Segoe UI Variable Text", "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono",
+               "SF Mono", Consolas, "Liberation Mono", monospace;
+
+  --text-xs:   0.6875rem;  /* 11px · table meta, badges      */
+  --text-sm:   0.75rem;    /* 12px · labels, footnotes       */
+  --text-base: 0.8125rem;  /* 13px · body, tables, controls  */
+  --text-md:   0.875rem;   /* 14px · nav, buttons            */
+  --text-lg:   1rem;       /* 16px · card titles             */
+  --text-xl:   1.25rem;    /* 20px · page titles             */
+  --text-2xl:  1.75rem;    /* 28px · dashboard figures       */
+  --text-3xl:  2.25rem;    /* 36px · hero figures            */
+
+  --tracking-tight: -0.011em;
+  --tracking-flat:   0;
+  --tracking-wide:   0.06em;   /* small-caps labels only     */
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semi:    600;
+  --weight-bold:    700;
+
+  /* ---- Space (4pt scale) ------------------------------------------- */
+  --space-3xs: 0.125rem;  /*  2px */
+  --space-2xs: 0.25rem;   /*  4px */
+  --space-xs:  0.375rem;  /*  6px */
+  --space-sm:  0.5rem;    /*  8px */
+  --space-md:  0.75rem;   /* 12px */
+  --space-lg:  1rem;      /* 16px */
+  --space-xl:  1.5rem;    /* 24px */
+  --space-2xl: 2rem;      /* 32px */
+
+  /* ---- Radius (Material 3 — generous, a defining trait) -------------- */
+  --radius-sm:    8px;
+  --radius-card:  16px;
+  --radius-input: 8px;
+  --radius-pill:  999px;
+
+  /* ---- Motion ------------------------------------------------------ */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:     cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-instant: 90ms;
+  --dur-short:   160ms;
+  --dur-medium:  240ms;
+
+  /* ---- Elevation (Material's defining trait — real shadows, not just
+         hairlines) --------------------------------------------------- */
+  --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.24), 0 1px 3px 1px rgba(0, 0, 0, 0.12);
+  --shadow-float:  0 4px 8px rgba(0, 0, 0, 0.28), 0 2px 4px rgba(0, 0, 0, 0.14);
+
+  /* ---- Chrome ------------------------------------------------------ */
+  --navbar-h:  50px;
+  --sidenav-w: 210px;
+}

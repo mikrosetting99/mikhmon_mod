@@ -32,6 +32,9 @@ session_start();
       <div  class="text-center">
       <span style="font-size: 25px; margin: 10px;">MIKHMON</span>
       </div>
+      <div class="text-center mr-b-10">
+      <small class="text-secondary">Support Mikrotik ROS V6 dan ROS7</small>
+      </div>
       <center>
       <form autocomplete="off" action="" method="post">
       <table class="table" style="width:90%">

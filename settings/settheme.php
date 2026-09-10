@@ -24,20 +24,12 @@ $url2 = explode("&set-theme", $url)[0];
 
 $gettheme = $_GET['set-theme'];
 $mtheme = array(
-    "dark",
-    "light",
-    "blue",
-    "green",
-    "pink",
-    "cobalt",
+    "material",
+    "material-dark",
 );
 $theme_color = array(
-    "#3a4149",
-    "#008BC9",
-    "#008BC9",
-    "#4dbd74",
-    "#e83e8c",
-    "#1e2530",
+    "#1976D2",
+    "#1976D2",
 );
 
 

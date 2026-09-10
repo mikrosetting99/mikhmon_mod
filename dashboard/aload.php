@@ -62,12 +62,12 @@ include('../lang/'.$langid.'.php');
     
     <div id="r_1" class="row">
       <div class="col-4">
-        <div class="box bmh-75 box-bordered">
+        <div class="box bg-purple bmh-75">
           <div class="box-group">
             <div class="box-group-icon"><i class="fa fa-calendar"></i></div>
               <div class="box-group-area">
               <span ><?= $_system_date_time ?><br>
-                    <?php 
+                    <?php
                     echo ucfirst($clock['date']) . " " . $clock['time'] . "<br>
                     ".$_uptime." : " . formatDTM($resource['uptime']);
                     ?>
@@ -77,7 +77,7 @@ include('../lang/'.$langid.'.php');
           </div>
         </div>
       <div class="col-4">
-        <div class="box bmh-75 box-bordered">
+        <div class="box bg-teal bmh-75">
           <div class="box-group">
           <div class="box-group-icon"><i class="fa fa-info-circle"></i></div>
               <div class="box-group-area">
@@ -93,7 +93,7 @@ include('../lang/'.$langid.'.php');
           </div>
         </div>
     <div class="col-4">
-      <div class="box bmh-75 box-bordered">
+      <div class="box bg-indigo bmh-75">
         <div class="box-group">
           <div class="box-group-icon"><i class="fa fa-server"></i></div>
               <div class="box-group-area">
@@ -107,7 +107,7 @@ include('../lang/'.$langid.'.php');
                 </div>
               </div>
             </div>
-          </div> 
+          </div>
       </div>
 
 <?php 
@@ -150,8 +150,8 @@ include('../lang/'.$langid.'.php');
               <div class="card-header"><h3><i class="fa fa-wifi"></i> Hotspot</h3></div>
                 <div class="card-body">
                   <div class="row">
-                    <div class="col-3 col-box-6">
-                      <div class="box bg-blue bmh-75">
+                    <div class="col-3">
+                      <div class="box bg-blue box-stat">
                         <a href="./?hotspot=active&session=<?= $session; ?>">
                           <h1><?= $counthotspotactive; ?>
                               <span style="font-size: 15px;"><?= $hunit; ?></span>
@@ -162,8 +162,8 @@ include('../lang/'.$langid.'.php');
                         </a>
                       </div>
                     </div>
-                    <div class="col-3 col-box-6">
-                    <div class="box bg-green bmh-75">
+                    <div class="col-3">
+                    <div class="box bg-green box-stat">
                       <a href="./?hotspot=users&profile=all&session=<?= $session; ?>">
                             <h1><?= $countallusers; ?>
                               <span style="font-size: 15px;"><?= $uunit; ?></span>
@@ -174,8 +174,8 @@ include('../lang/'.$langid.'.php');
                       </a>
                     </div>
                   </div>
-                  <div class="col-3 col-box-6">
-                    <div class="box bg-yellow bmh-75">
+                  <div class="col-3">
+                    <div class="box bg-yellow box-stat">
                       <a href="./?hotspot-user=add&session=<?= $session; ?>">
                         <div>
                           <h1><i class="fa fa-user-plus"></i>
@@ -188,8 +188,8 @@ include('../lang/'.$langid.'.php');
                       </a>
                     </div>
                   </div>
-                  <div class="col-3 col-box-6">
-                    <div class="box bg-red bmh-75">
+                  <div class="col-3">
+                    <div class="box bg-red box-stat">
                       <a href="./?hotspot-user=generate&session=<?= $session; ?>">
                         <div>
                           <h1><i class="fa fa-user-plus"></i>
@@ -210,8 +210,8 @@ include('../lang/'.$langid.'.php');
               <div class="card-header"><h3><i class="fa fa-plug"></i> PPPoE</h3></div>
                 <div class="card-body">
                   <div class="row">
-                    <div class="col-3 col-box-6">
-                      <div class="box bg-green bmh-75">
+                    <div class="col-3">
+                      <div class="box bg-green box-stat">
                         <a href="./?ppp=active&session=<?= $session; ?>">
                           <h1><?= $countpppactive; ?>
                             <span style="font-size: 15px;">online</span>
@@ -222,8 +222,8 @@ include('../lang/'.$langid.'.php');
                         </a>
                       </div>
                     </div>
-                    <div class="col-3 col-box-6">
-                      <div class="box bg-grey bmh-75">
+                    <div class="col-3">
+                      <div class="box bg-grey box-stat">
                         <a href="./?ppp=secrets&session=<?= $session; ?>">
                           <h1><?= $countpppoff; ?>
                             <span style="font-size: 15px;">offline</span>
@@ -234,8 +234,8 @@ include('../lang/'.$langid.'.php');
                         </a>
                       </div>
                     </div>
-                    <div class="col-3 col-box-6">
-                      <div class="box bg-blue bmh-75">
+                    <div class="col-3">
+                      <div class="box bg-blue box-stat">
                         <a href="./?ppp=secrets&session=<?= $session; ?>">
                           <h1><?= $countpppsecret; ?>
                             <span style="font-size: 15px;">total</span>
@@ -246,8 +246,8 @@ include('../lang/'.$langid.'.php');
                         </a>
                       </div>
                     </div>
-                    <div class="col-3 col-box-6">
-                      <div class="box bg-yellow bmh-75">
+                    <div class="col-3">
+                      <div class="box bg-yellow box-stat">
                         <a href="./?ppp=addsecret&session=<?= $session; ?>">
                           <div>
                             <h1><i class="fa fa-user-plus"></i>

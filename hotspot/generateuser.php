@@ -60,175 +60,6 @@ date_default_timezone_set($_SESSION['timezone']);
 
 	$srvlist = $API->comm("/ip/hotspot/print");
 
-	if (isset($_POST['qty'])) {
-		
-		$qty = ($_POST['qty']);
-		$server = ($_POST['server']);
-		$user = ($_POST['user']);
-		$userl = ($_POST['userl']);
-		$prefix = ($_POST['prefix']);
-		$char = ($_POST['char']);
-		$profile = ($_POST['profile']);
-		$timelimit = ($_POST['timelimit']);
-		$datalimit = ($_POST['datalimit']);
-		$adcomment = ($_POST['adcomment']);
-		$mbgb = ($_POST['mbgb']);
-		if ($timelimit == "") {
-			$timelimit = "0";
-		} else {
-			$timelimit = $timelimit;
-		}
-		if ($datalimit == "") {
-			$datalimit = "0";
-		} else {
-			$datalimit = $datalimit * $mbgb;
-		}
-		if ($adcomment == "") {
-			$adcomment = "";
-		} else {
-			$adcomment = $adcomment;
-		}
-		$getprofile = $API->comm("/ip/hotspot/user/profile/print", array("?name" => "$profile"));
-		$ponlogin = $getprofile[0]['on-login'];
-		$getvalid = explode(",", $ponlogin)[3];
-		$getprice = explode(",", $ponlogin)[2];
-		$getsprice = explode(",", $ponlogin)[4];
-		$getlock = explode(",", $ponlogin)[6];
-		$_SESSION['ubp'] = $profile;
-		$commt = $user . "-" . rand(100, 999) . "-" . date("m.d.y") . "-" . $adcomment;
-		$gentemp = $commt . "|~" . $profile . "~" . $getvalid . "~" . $getprice . "!".$getsprice."~" . $timelimit . "~" . $datalimit . "~" . $getlock;
-		$gen = '<?php $genu="'.encrypt($gentemp).'";?>';
-		$temp = './voucher/temp.php';
-		$handle = fopen($temp, 'w') or die('Cannot open file:  ' . $temp);
-		fwrite($handle, $gen);
-
-		$a = array("1" => "", "", 1, 2, 2, 3, 3, 4);
-
-		if ($user == "up") {
-			for ($i = 1; $i <= $qty; $i++) {
-				if ($char == "lower") {
-					$u[$i] = randLC($userl);
-				} elseif ($char == "upper") {
-					$u[$i] = randUC($userl);
-				} elseif ($char == "upplow") {
-					$u[$i] = randULC($userl);
-				} elseif ($char == "mix") {
-					$u[$i] = randNLC($userl);
-				} elseif ($char == "mix1") {
-					$u[$i] = randNUC($userl);
-				} elseif ($char == "mix2") {
-					$u[$i] = randNULC($userl);
-				}
-				if ($userl == 3) {
-					$p[$i] = randN(3);
-				} elseif ($userl == 4) {
-					$p[$i] = randN(4);
-				} elseif ($userl == 5) {
-					$p[$i] = randN(5);
-				} elseif ($userl == 6) {
-					$p[$i] = randN(6);
-				} elseif ($userl == 7) {
-					$p[$i] = randN(7);
-				} elseif ($userl == 8) {
-					$p[$i] = randN(8);
-				}
-
-				$u[$i] = "$prefix$u[$i]";
-			}
-
-			for ($i = 1; $i <= $qty; $i++) {
-				$API->comm("/ip/hotspot/user/add", array(
-					"server" => "$server",
-					"name" => "$u[$i]",
-					"password" => "$p[$i]",
-					"profile" => "$profile",
-					"limit-uptime" => "$timelimit",
-					"limit-bytes-total" => "$datalimit",
-					"comment" => "$commt",
-				));
-			}
-		}
-
-		if ($user == "vc") {
-			$shuf = ($userl - $a[$userl]);
-			for ($i = 1; $i <= $qty; $i++) {
-				if ($char == "lower") {
-					$u[$i] = randLC($shuf);
-				} elseif ($char == "upper") {
-					$u[$i] = randUC($shuf);
-				} elseif ($char == "upplow") {
-					$u[$i] = randULC($shuf);
-				}
-				if ($userl == 3) {
-					$p[$i] = randN(1);
-				} elseif ($userl == 4 || $userl == 5) {
-					$p[$i] = randN(2);
-				} elseif ($userl == 6 || $userl == 7) {
-					$p[$i] = randN(3);
-				} elseif ($userl == 8) {
-					$p[$i] = randN(4);
-				}
-
-				$u[$i] = "$prefix$u[$i]$p[$i]";
-
-				if ($char == "num") {
-					if ($userl == 3) {
-						$p[$i] = randN(3);
-					} elseif ($userl == 4) {
-						$p[$i] = randN(4);
-					} elseif ($userl == 5) {
-						$p[$i] = randN(5);
-					} elseif ($userl == 6) {
-						$p[$i] = randN(6);
-					} elseif ($userl == 7) {
-						$p[$i] = randN(7);
-					} elseif ($userl == 8) {
-						$p[$i] = randN(8);
-					}
-
-					$u[$i] = "$prefix$p[$i]";
-				}
-				if ($char == "mix") {
-					$p[$i] = randNLC($userl);
-
-
-					$u[$i] = "$prefix$p[$i]";
-				}
-				if ($char == "mix1") {
-					$p[$i] = randNUC($userl);
-
-
-					$u[$i] = "$prefix$p[$i]";
-				}
-				if ($char == "mix2") {
-					$p[$i] = randNULC($userl);
-
-
-					$u[$i] = "$prefix$p[$i]";
-				}
-
-			}
-			for ($i = 1; $i <= $qty; $i++) {
-				$API->comm("/ip/hotspot/user/add", array(
-					"server" => "$server",
-					"name" => "$u[$i]",
-					"password" => "$u[$i]",
-					"profile" => "$profile",
-					"limit-uptime" => "$timelimit",
-					"limit-bytes-total" => "$datalimit",
-					"comment" => "$commt",
-				));
-			}
-		}
-
-
-		if ($qty < 2) {
-			echo "<script>window.location='./?hotspot-user=" . $u[1] . "&session=" . $session . "'</script>";
-		} else {
-			echo "<script>window.location='./?hotspot-user=generate&session=" . $session . "'</script>";
-		}
-	}
-
 	$getprofile = $API->comm("/ip/hotspot/user/profile/print");
 	include_once('./voucher/temp.php');
 	$genuser = explode("-", decrypt($genu));
@@ -287,10 +118,10 @@ date_default_timezone_set($_SESSION['timezone']);
 <div class="col-8">
 <div class="card box-bordered">
 	<div class="card-header">
-	<h3><i class="fa fa-user-plus"></i> <?= $_generate_user ?> <small id="loader" style="display: none;" ><i><i class='fa fa-circle-o-notch fa-spin'></i> <?= $_processing ?> </i></small></h3> 
+	<h3><i class="fa fa-user-plus"></i> <?= $_generate_user ?> <small id="loader" style="display: none;" ><i><i class='fa fa-circle-o-notch fa-spin'></i> <?= $_processing ?> <span id="genPercent">0%</span></i></small></h3>
 	</div>
 	<div class="card-body">
-<form autocomplete="off" method="post" action="">
+<form autocomplete="off" method="post" action="" id="genform" onsubmit="return startGenerate(event)">
 	<div>
 		<?php if ($_SESSION['ubp'] != "") {
 		echo "    <a class='btn bg-warning' href='./?hotspot=users&profile=" . $_SESSION['ubp'] . "&session=" . $session . "'> <i class='fa fa-close'></i> ".$_close."</a>";
@@ -312,10 +143,13 @@ date_default_timezone_set($_SESSION['timezone']);
 } else {
 	echo $uprofile;
 } ?>&session=<?= $session; ?>"> <i class="fa fa-users"></i> <?= $_user_list ?></a>
-    <button type="submit" name="save" onclick="loader()" class="btn bg-primary" title="Generate User"> <i class="fa fa-save"></i> <?= $_generate ?></button>
+    <button type="submit" name="save" class="btn bg-primary" title="Generate User"> <i class="fa fa-save"></i> <?= $_generate ?></button>
     <a class="btn bg-secondary" title="Print Default" href="./voucher/print.php?id=<?= $urlprint; ?>&qr=no&session=<?= $session; ?>" target="_blank"> <i class="fa fa-print"></i> <?= $_print ?></a>
     <a class="btn bg-danger" title="Print QR" href="./voucher/print.php?id=<?= $urlprint; ?>&qr=yes&session=<?= $session; ?>" target="_blank"> <i class="fa fa-qrcode"></i> <?= $_print_qr ?></a>
     <a class="btn bg-info" title="Print Small" href="./voucher/print.php?id=<?= $urlprint; ?>&small=yes&session=<?= $session; ?>" target="_blank"> <i class="fa fa-print"></i> <?= $_print_small ?></a>
+</div>
+<div id="genProgressWrap" style="display:none; margin:8px 0;">
+  <div class="progress"><div id="genProgressBar" class="progress-bar-blue" style="width:0%"></div></div>
 </div>
 <table class="table">
   <tr>
@@ -475,6 +309,53 @@ date_default_timezone_set($_SESSION['timezone']);
 function GetVP(){
   var prof = document.getElementById('uprof').value;
   $("#GetValidPrice").load("./process/getvalidprice.php?name="+prof+"&session=<?= $session; ?> #getdata");
-} 
+}
+
+// generate voucher lewat AJAX per-batch supaya persentase progres nyata,
+// bukan cuma spinner, karena qty bisa sampai 500 dan tiap user 1 panggilan API router.
+async function startGenerate(e) {
+  e.preventDefault();
+  var form = document.getElementById('genform');
+  var loaderEl = document.getElementById('loader');
+  var percentEl = document.getElementById('genPercent');
+  var wrapEl = document.getElementById('genProgressWrap');
+  var barEl = document.getElementById('genProgressBar');
+
+  loaderEl.style.display = 'inline';
+  wrapEl.style.display = 'block';
+  percentEl.textContent = '0%';
+  barEl.style.width = '0%';
+
+  try {
+    var initData = new FormData(form);
+    initData.append('session', '<?= $session; ?>');
+    initData.append('step', 'init');
+    var initRes = await fetch('./process/genbatch.php', { method: 'POST', body: initData });
+    var init = await initRes.json();
+    if (init.error) { alert(init.error); loaderEl.style.display = 'none'; return false; }
+
+    while (true) {
+      var chunkData = new FormData();
+      chunkData.append('session', '<?= $session; ?>');
+      chunkData.append('step', 'chunk');
+      var res = await fetch('./process/genbatch.php', { method: 'POST', body: chunkData });
+      var data = await res.json();
+      if (data.error) { alert(data.error); loaderEl.style.display = 'none'; return false; }
+
+      var pct = data.total > 0 ? Math.round((data.done / data.total) * 100) : 100;
+      percentEl.textContent = pct + '%';
+      barEl.style.width = pct + '%';
+
+      if (data.finished) {
+        window.location = data.redirect;
+        break;
+      }
+    }
+  } catch (err) {
+    alert('Generate failed: ' + err);
+    loaderEl.style.display = 'none';
+  }
+  return false;
+}
 </script>
 </div>

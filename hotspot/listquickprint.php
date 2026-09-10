@@ -251,10 +251,10 @@ $getquickprint = $API->comm("/system/script/print", array("?.id" => "$qpid"));
 	<tr>
     <td class="align-middle"><?= $_data_limit ?></td><td>
       <div class="input-group">
-      	<div class="input-group-8 col-box-9">
+      	<div class="input-group-10 col-box-9">
         	<input class="group-item group-item-l" type="number" min="0" max="9999" name="datalimit" value="<?= $udatalimit; ?>">
     	</div>
-          <div class="input-group-4 col-box-3">
+          <div class="input-group-2 col-box-3">
 							<select style="padding:4.2px;" class="group-item group-item-r" name="mbgb" required="1">
 							<?php if(isset($qpid)){echo '<option value="'.$xdatalimit.'">'.$MG.'</option>';}?>
 				        <option value=1048576>MB</option>

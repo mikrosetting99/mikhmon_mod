@@ -173,7 +173,7 @@ if($idleto != "disable"){
 
 <div id="navbar" class="navbar">
   <div class="navbar-left">
-    <a id="brand" class="text-center" href="javascript:void(0)">MIKHMON ROS7</a>
+    <a id="brand" class="text-center" href="javascript:void(0)">MIKHMON</a>
 
 <a id="openNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
 <a id="closeNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
@@ -184,7 +184,7 @@ if($idleto != "disable"){
   <select class="stheme ses text-right mr-t-10 pd-5">
     <option> <?= $_theme?></option>
     <?php for ($i = 0; $i < count($mtheme); $i++) {
-      echo '<option value="'.$url.'&set-theme='.$mtheme[$i],'">'.ucfirst($mtheme[$i]),'</option>';
+      echo '<option value="'.$url.'&set-theme='.$mtheme[$i],'">'.ucwords(str_replace('-', ' ', $mtheme[$i])),'</option>';
     }
     ?>
   </select>
@@ -248,7 +248,7 @@ include('./info.php');
 
 <div id="navbar" class="navbar">
   <div class="navbar-left">
-    <a id="brand" class="text-center" href="./?session=<?= $session; ?>">MIKHMON ROS7</a>
+    <a id="brand" class="text-center" href="./?session=<?= $session; ?>">MIKHMON</a>
 
 <a id="openNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
 <a id="closeNav" class="navbar-hover" href="javascript:void(0)"><i class="fa fa-bars"></i></a>
@@ -259,7 +259,7 @@ include('./info.php');
   <select class="stheme ses text-right mr-t-10 pd-5">
     <option> <?= $_theme ?></option>
     <?php for ($i = 0; $i < count($mtheme); $i++) {
-      echo '<option value="'.$url.'&set-theme='.$mtheme[$i],'">'.ucfirst($mtheme[$i]),'</option>';
+      echo '<option value="'.$url.'&set-theme='.$mtheme[$i],'">'.ucwords(str_replace('-', ' ', $mtheme[$i])),'</option>';
     }
     ?>
   </select>

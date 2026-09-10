@@ -1,0 +1,120 @@
+/* Portable design tokens for Mikhmon — theme: Material (dark).
+ * Same token NAMES as tokens-material.css (Material light) so the component
+ * stylesheet can be reused verbatim — only the values change.
+ *
+ * Palette values are drawn from the official Material Design colour system
+ * (material.io) — named swatches like "Blue 200" / "Blue 700" rather than
+ * hand-picked hex — plus Material 3's dark scheme: near-black warm-neutral
+ * surfaces and a filled blue chrome bar so the app still reads as colourful
+ * rather than just "dark".
+ */
+
+:root {
+  /* ---- Surfaces (dark, Material "surface container" tones) ----------- */
+  --color-paper:      #141218;  /* app background          */
+  --color-paper-2:    #1D1B20;  /* cards, sidenav, navbar  */
+  --color-paper-3:    #262329;  /* card headers, hover     */
+  --color-paper-4:    #322F35;  /* active, pressed         */
+  --color-well:       #0F0D13;  /* inputs, table stripe    */
+
+  /* ---- Ink ----------------------------------------------------------- */
+  --color-ink:        #E6E0E9;  /* primary text            */
+  --color-ink-2:      #CAC4D0;  /* secondary text          */
+  --color-ink-3:      #938F99;  /* muted, placeholders     */
+
+  /* ---- Rules ----------------------------------------------------------- */
+  --color-rule:       #49454F;  /* visible hairline        */
+  --color-rule-soft:  #36343B;  /* internal dividers       */
+
+  /* ---- Accent — official Material "Blue" swatches (200/100/300) ------ */
+  --color-accent:     #90CAF9;  /* Blue 200                */
+  --color-accent-hi:  #BBDEFB;  /* Blue 100 · hover        */
+  --color-accent-lo:  #64B5F6;  /* Blue 300 · pressed      */
+  --color-accent-ink: #0D47A1;  /* Blue 900 · text on fill */
+  --color-accent-wash: rgba(144, 202, 249, 0.16);
+  --color-focus:      #90CAF9;
+
+  /* ---- Chrome fill (navbar) — Blue 700, the same swatch light mode uses
+         for its primary, so the brand colour stays recognisable across
+         themes; distinct enough from the near-black surfaces below. ---- */
+  --color-chrome:     #1976D2;  /* Blue 700                */
+  --color-chrome-ink: #FFFFFF;
+
+  /* ---- Semantic — official Material swatches (same stops as light; a
+         solid badge fill reads fine regardless of overall theme). ------
+         success Green 800 · warning Amber 700 · danger Red 700 ·
+         info Light Blue 700 · purple Purple 500 · pink Pink 700 ·
+         indigo Indigo 500 · teal Teal 700 · orange Deep Orange 700 ·
+         yellow Amber 300. --------------------------------------------- */
+  --color-success:    #2E7D32;
+  --color-warning:    #FFA000;
+  --color-danger:     #D32F2F;
+  --color-info:       #0288D1;
+  --color-purple:     #9C27B0;
+  --color-pink:       #C2185B;
+  --color-indigo:     #3F51B5;
+  --color-teal:       #00796B;
+  --color-orange:     #E64A19;
+  --color-yellow:     #FFD54F;
+
+  --color-success-ink: #FFFFFF;
+  --color-warning-ink: #1C1B1F;
+  --color-danger-ink:  #FFFFFF;
+  --color-info-ink:    #FFFFFF;
+
+  /* ---- Type -------------------------------------------------------- */
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system,
+               "Segoe UI Variable Text", "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono",
+               "SF Mono", Consolas, "Liberation Mono", monospace;
+
+  --text-xs:   0.6875rem;  /* 11px · table meta, badges      */
+  --text-sm:   0.75rem;    /* 12px · labels, footnotes       */
+  --text-base: 0.8125rem;  /* 13px · body, tables, controls  */
+  --text-md:   0.875rem;   /* 14px · nav, buttons            */
+  --text-lg:   1rem;       /* 16px · card titles             */
+  --text-xl:   1.25rem;    /* 20px · page titles             */
+  --text-2xl:  1.75rem;    /* 28px · dashboard figures       */
+  --text-3xl:  2.25rem;    /* 36px · hero figures            */
+
+  --tracking-tight: -0.011em;
+  --tracking-flat:   0;
+  --tracking-wide:   0.06em;   /* small-caps labels only     */
+
+  --weight-regular: 400;
+  --weight-medium:  500;
+  --weight-semi:    600;
+  --weight-bold:    700;
+
+  /* ---- Space (4pt scale) ------------------------------------------- */
+  --space-3xs: 0.125rem;  /*  2px */
+  --space-2xs: 0.25rem;   /*  4px */
+  --space-xs:  0.375rem;  /*  6px */
+  --space-sm:  0.5rem;    /*  8px */
+  --space-md:  0.75rem;   /* 12px */
+  --space-lg:  1rem;      /* 16px */
+  --space-xl:  1.5rem;    /* 24px */
+  --space-2xl: 2rem;      /* 32px */
+
+  /* ---- Radius (Material 3 — generous, a defining trait) -------------- */
+  --radius-sm:    8px;
+  --radius-card:  16px;
+  --radius-input: 8px;
+  --radius-pill:  999px;
+
+  /* ---- Motion ------------------------------------------------------ */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:     cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-instant: 90ms;
+  --dur-short:   160ms;
+  --dur-medium:  240ms;
+
+  /* ---- Elevation (dark surfaces need more contrast to register) ------ */
+  --shadow-raised: 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 3px 1px rgba(0, 0, 0, 0.3);
+  --shadow-float:  0 4px 8px rgba(0, 0, 0, 0.55), 0 2px 4px rgba(0, 0, 0, 0.3);
+
+  /* ---- Chrome ------------------------------------------------------ */
+  --navbar-h:  50px;
+  --sidenav-w: 210px;
+}

@@ -48,7 +48,8 @@ if (!isset($_SESSION["mikhmon"])) {
       <div class="card-body">
         <h3>MIKHMON &mdash; v<?= $_SESSION['v']; ?></h3>
         <p style="color:#888;font-size:13px;margin-top:-6px;">
-          Fork dari Mikhmon v3.20 karya Laksamadi Guko, dengan dukungan RouterOS v7.
+          Fork dari Mikhmon v3.20 karya Laksamadi Guko, dengan dukungan RouterOS v7.<br>
+          Versi fork ini: <b>v<?= $_SESSION['fv']; ?></b> &mdash; <a href="https://github.com/mikrosetting99/mikhmon_mod/blob/main/CHANGELOG.md" target="_blank">lihat changelog</a>
         </p>
 <p>
   Aplikasi ini dipersembahkan untuk pengusaha hotspot di manapun Anda berada.

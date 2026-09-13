@@ -211,3 +211,23 @@ function ros_exp_comment_len($s)
     }
     return 20;
 }
+
+/**
+ * Sejak sebuah versi RouterOS 7.x (dikonfirmasi terjadi di 7.24.2), router
+ * tidak lagi menghormati owner= kustom pada /system script add — nilainya
+ * selalu ditimpa jadi "*sys" oleh router, apa pun yang dikirim Mikhmon.
+ * Laporan penjualan bulanan sebelumnya memfilter /system/script/print lewat
+ * ?owner=<bulan><tahun> (mis. "sep2026"), jadi filter itu berhenti berfungsi
+ * begitu router di-upgrade — datanya tetap tersimpan, cuma tidak ketemu lagi.
+ *
+ * source= (tanggal apa adanya, format kanonik v6 "mmm/dd/yyyy" dari
+ * ros_build_onlogin) terbukti tetap akurat, jadi pencocokan bulan+tahun
+ * dipindah ke PHP: ambil semua entri comment=mikhmon, lalu saring di sini.
+ */
+function ros_month_matches($sourceDate, $idbl)
+{
+    if (strlen($sourceDate) < 7 || $idbl == "") {
+        return false;
+    }
+    return strtolower(substr($sourceDate, 0, 3)) . substr($sourceDate, -4) === strtolower($idbl);
+}

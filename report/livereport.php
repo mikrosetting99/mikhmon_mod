@@ -18,6 +18,7 @@
 session_start();
 // hide all error
 error_reporting(0);
+require_once __DIR__ . '/../include/roscompat.php';
 if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
@@ -69,9 +70,14 @@ include('../lang/'.$langid.'.php');
     ));
     $TotalRHr = count($getSRHr);
     $_SESSION[$session.'totalHr'] = $TotalRHr;*/
-    $getSRBl = $API->comm("/system/script/print", array(
-      "?owner" => "$idbl",
+    // owner= tidak lagi bisa diandalkan (lihat ros_month_matches) - ambil
+    // semua entri mikhmon, saring bulan+tahun lewat source= di PHP.
+    $getSRAll = $API->comm("/system/script/print", array(
+      "?comment" => "mikhmon",
     ));
+    $getSRBl = array_values(array_filter($getSRAll, function ($row) use ($idbl) {
+      return ros_month_matches($row['source'], $idbl);
+    }));
     $TotalRBl = count($getSRBl);
     $_SESSION[$session.'totalBl'] = $TotalRBl;
 /*

@@ -18,10 +18,11 @@
 session_start();
 // hide all error
 error_reporting(0);
+require_once __DIR__ . '/../include/roscompat.php';
 if (!isset($_SESSION["mikhmon"])) {
 	header("Location:../admin.php?id=login");
 } else {
-  
+
   // load session MikroTik
   $session = $_GET['session'];
 
@@ -86,11 +87,16 @@ if (!isset($_SESSION["mikhmon"])) {
 			}
 		} elseif (strlen($idbl) > "0") {
 			if ($API->connected) {
+				// owner= tidak lagi bisa diandalkan (lihat ros_month_matches) - ambil
+				// semua entri mikhmon, saring bulan lewat source= di PHP.
 				$API->write('/system/script/print', false);
-				$API->write('?owner=' . $idbl . '', false);
-				$API->write('=.proplist=.id');
+				$API->write('?comment=mikhmon', false);
+				$API->write('=.proplist=.id,source');
 				$ARREMD = $API->read();
 				for ($i = 0; $i < count($ARREMD); $i++) {
+					if (!ros_month_matches($ARREMD[$i]['source'], $idbl)) {
+						continue;
+					}
 					$API->write('/system/script/remove', false);
 					$API->write('=.id=' . $ARREMD[$i]['.id']);
 					$READ = $API->read();
@@ -121,9 +127,14 @@ if (!isset($_SESSION["mikhmon"])) {
 		$shd = "inline-block";
 	} elseif (strlen($idbl) > "0") {
 		if ($API->connected) {
-			$getData = $API->comm("/system/script/print", array(
-				"?owner" => "$idbl",
+			// owner= tidak lagi bisa diandalkan (lihat ros_month_matches) - ambil
+			// semua entri mikhmon, saring bulan+tahun lewat source= di PHP.
+			$getAllData = $API->comm("/system/script/print", array(
+				"?comment" => "mikhmon",
 			));
+			$getData = array_values(array_filter($getAllData, function ($row) use ($idbl) {
+				return ros_month_matches($row['source'], $idbl);
+			}));
 			$TotalReg = count($getData);
 		}
 		$filedownload = $idbl;
@@ -141,9 +152,12 @@ if (!isset($_SESSION["mikhmon"])) {
 		$shd = "none";
 	} elseif (strlen($idbl) > "0" ) {
 		if ($API->connected) {
-			$getData = $API->comm("/system/script/print", array(
-				"?owner" => "$idbl",
+			$getAllData = $API->comm("/system/script/print", array(
+				"?comment" => "mikhmon",
 			));
+			$getData = array_values(array_filter($getAllData, function ($row) use ($idbl) {
+				return ros_month_matches($row['source'], $idbl);
+			}));
 			$TotalReg = count($getData);
 		}
 		$filedownload = $idbl;

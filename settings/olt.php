@@ -17,21 +17,24 @@
  */
 
 /*
- * Monitoring OLT — daftar terpisah, tidak terikat ke satu session router
- * Mikrotik. Menyimpan daftar OLT (nama, host, port, protokol) di
- * include/olt.json, dan mengecek status UP/DOWN lewat TCP connect ke
- * host:port (biasanya 80/443, web admin OLT) via process/oltstatus.php.
+ * Monitoring OLT — terikat ke masing-masing router session (OLT beda-beda
+ * per lokasi/router). Disimpan di include/olt.json sebagai dict keyed by
+ * nama session: { "<session>": [ {id, name, host, port, protocol}, ... ] }.
+ * Status UP/DOWN dicek lewat TCP connect ke host:port (biasanya 80/443, web
+ * admin OLT) via process/oltstatus.php.
  */
 
 // hide all error
 error_reporting(0);
 if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
+} elseif (empty($session)) {
+  echo "<script>window.location='./admin.php?id=sessions'</script>";
 } else {
 
   $oltFile = __DIR__ . '/../include/olt.json';
 
-  function mikhmon_olt_load($file)
+  function mikhmon_olt_load_all($file)
   {
     if (!file_exists($file)) {
       return array();
@@ -40,9 +43,9 @@ if (!isset($_SESSION["mikhmon"])) {
     return is_array($data) ? $data : array();
   }
 
-  function mikhmon_olt_save($file, $list)
+  function mikhmon_olt_save_all($file, $all)
   {
-    file_put_contents($file, json_encode(array_values($list), JSON_PRETTY_PRINT));
+    file_put_contents($file, json_encode($all, JSON_PRETTY_PRINT));
   }
 
   function mikhmon_olt_url($olt)
@@ -54,7 +57,8 @@ if (!isset($_SESSION["mikhmon"])) {
 
   $color = array('1' => 'bg-blue', 'bg-indigo', 'bg-purple', 'bg-pink', 'bg-red', 'bg-yellow', 'bg-green', 'bg-teal', 'bg-cyan', 'bg-grey', 'bg-light-blue');
 
-  $oltList = mikhmon_olt_load($oltFile);
+  $oltAll = mikhmon_olt_load_all($oltFile);
+  $oltList = isset($oltAll[$session]) && is_array($oltAll[$session]) ? $oltAll[$session] : array();
 
   if (isset($_POST['save_olt'])) {
     $name = trim($_POST['olt_name']);
@@ -88,8 +92,9 @@ if (!isset($_SESSION["mikhmon"])) {
         'protocol' => $protocol,
       );
     }
-    mikhmon_olt_save($oltFile, $oltList);
-    echo "<script>window.location='./admin.php?id=olt'</script>";
+    $oltAll[$session] = $oltList;
+    mikhmon_olt_save_all($oltFile, $oltAll);
+    echo "<script>window.location='./admin.php?id=olt&session=" . $session . "'</script>";
   }
 
   if (isset($_GET['remove_olt']) && $_GET['remove_olt'] != '') {
@@ -97,8 +102,9 @@ if (!isset($_SESSION["mikhmon"])) {
     $oltList = array_values(array_filter($oltList, function ($o) use ($rid) {
       return $o['id'] != $rid;
     }));
-    mikhmon_olt_save($oltFile, $oltList);
-    echo "<script>window.location='./admin.php?id=olt'</script>";
+    $oltAll[$session] = $oltList;
+    mikhmon_olt_save_all($oltFile, $oltAll);
+    echo "<script>window.location='./admin.php?id=olt&session=" . $session . "'</script>";
   }
 
   $editOlt = array('id' => '', 'name' => '', 'host' => '', 'port' => 80, 'protocol' => 'http');
@@ -114,7 +120,7 @@ if (!isset($_SESSION["mikhmon"])) {
 ?>
 <div class="row">
   <div class="col-12">
-    <h3 class="mr-b-10"><i class="fa fa-share-alt"></i> OLT Monitoring &nbsp; | &nbsp;&nbsp;<i onclick="location.reload();" class="fa fa-refresh pointer" title="Reload data"></i></h3>
+    <h3 class="mr-b-10"><i class="fa fa-share-alt"></i> OLT Monitoring &mdash; <?= htmlspecialchars($session); ?> &nbsp; | &nbsp;&nbsp;<i onclick="location.reload();" class="fa fa-refresh pointer" title="Reload data"></i></h3>
   </div>
 </div>
 <div class="row">
@@ -129,7 +135,7 @@ if (!isset($_SESSION["mikhmon"])) {
   if (count($oltList) == 0) {
 ?>
           <div class="col-12">
-            <p class="text-center text-grey">Belum ada OLT terdaftar. Tambahkan lewat form di sebelah kanan.</p>
+            <p class="text-center text-grey">Belum ada OLT terdaftar untuk router <b><?= htmlspecialchars($session); ?></b>. Tambahkan lewat form di sebelah kanan.</p>
           </div>
 <?php
   }
@@ -149,8 +155,8 @@ if (!isset($_SESSION["mikhmon"])) {
                     <span id="olt-status-<?= $olt['id']; ?>" class="text-grey"><i class="fa fa-circle-o-notch fa-spin"></i> Mengecek...</span>
                     &nbsp;
                     <a href="<?= htmlspecialchars($url); ?>" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Buka</a>&nbsp;
-                    <a href="./admin.php?id=olt&edit=<?= $olt['id']; ?>"><i class="fa fa-edit"></i> Edit</a>&nbsp;
-                    <a href="javascript:void(0)" onclick="if(confirm('Hapus OLT <?= htmlspecialchars($olt['name']); ?>?')){loadpage('./admin.php?id=olt&remove_olt=<?= $olt['id']; ?>')}else{}"><i class="fa fa-remove"></i> Hapus</a>
+                    <a href="./admin.php?id=olt&session=<?= $session; ?>&edit=<?= $olt['id']; ?>"><i class="fa fa-edit"></i> Edit</a>&nbsp;
+                    <a href="javascript:void(0)" onclick="if(confirm('Hapus OLT <?= htmlspecialchars($olt['name']); ?>?')){loadpage('./admin.php?id=olt&session=<?= $session; ?>&remove_olt=<?= $olt['id']; ?>')}else{}"><i class="fa fa-remove"></i> Hapus</a>
                   </span>
                 </div>
               </div>
@@ -197,7 +203,7 @@ if (!isset($_SESSION["mikhmon"])) {
               <td></td>
               <td class="text-right">
                 <?php if ($editOlt['id'] != '') { ?>
-                <a class="btn" href="./admin.php?id=olt"><i class="fa fa-close"></i> Batal</a>
+                <a class="btn" href="./admin.php?id=olt&session=<?= $session; ?>"><i class="fa fa-close"></i> Batal</a>
                 <?php } ?>
                 <button type="submit" name="save_olt" class="btn bg-primary"><i class="fa fa-save"></i> Simpan</button>
               </td>

@@ -35,6 +35,7 @@ $ids = array(
   "editor",
   "uplogo",
   "settings",
+  "olt",
 );
 
 // lang
@@ -94,7 +95,7 @@ if ($id == "login" || substr($url, -1) == "p") {
   $_SESSION["connect"] = "";
   include_once('./include/menu.php');
   include_once('./settings/sessions.php');
-} elseif ($id == "olt") {
+} elseif ($id == "olt" && !empty($session)) {
   include_once('./include/menu.php');
   include_once('./settings/olt.php');
   /*echo '

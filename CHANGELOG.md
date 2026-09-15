@@ -12,6 +12,16 @@ nomor versi upstream Mikhmon (`v3.20`, masih dirujuk di halaman About).
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-09-15
+### Changed
+- Monitoring OLT (2.1.0) sekarang **terikat per router session**, bukan satu
+  daftar global. Tiap router bisa punya OLT sendiri-sendiri, dan menu "OLT
+  Monitoring" cuma muncul setelah masuk ke session router tertentu
+  (`admin.php?id=olt&session=<nama>`) — dihapus dari sidenav sebelum pilih
+  router karena OLT memang milik masing-masing lokasi/router, bukan konsep
+  global. `include/olt.json` berubah struktur jadi dict per-session
+  (`{ "<session>": [ ...daftar OLT... ] }`).
+
 ## [2.1.0] - 2026-09-15
 ### Added
 - Monitoring OLT: menu baru "OLT Monitoring" (halaman `settings/olt.php`),
@@ -76,7 +86,8 @@ Baseline fork stabil pertama, di atas upstream Mikhmon v3.20
   router hanya mengirim data yang dipakai.
 
 [Unreleased]: https://github.com/mikrosetting99/mikhmon_mod/compare/main...HEAD
-[2.1.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/94f40db...main
+[2.1.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/24863a3...main
+[2.1.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/94f40db...24863a3
 [2.0.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/a258a59...94f40db
 [2.0.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/a0fcee7...a258a59
 [1.0.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/947655a...a0fcee7

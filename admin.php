@@ -94,6 +94,9 @@ if ($id == "login" || substr($url, -1) == "p") {
   $_SESSION["connect"] = "";
   include_once('./include/menu.php');
   include_once('./settings/sessions.php');
+} elseif ($id == "olt") {
+  include_once('./include/menu.php');
+  include_once('./settings/olt.php');
   /*echo '
   <script type="text/javascript">
     document.getElementById("sessname").onkeypress = function(e) {

@@ -12,6 +12,17 @@ nomor versi upstream Mikhmon (`v3.20`, masih dirujuk di halaman About).
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-09-15
+### Added
+- Monitoring OLT: menu baru "OLT Monitoring" (halaman `settings/olt.php`),
+  daftar terpisah dari session router Mikrotik — tidak terbatas satu OLT per
+  session. Tiap OLT (nama, host, port, protokol) dicek status UP/DOWN lewat
+  TCP connect ke port web admin-nya (biasanya 80/443, endpoint baru
+  `process/oltstatus.php`), dicek paralel per-OLT lewat AJAX supaya OLT yang
+  down tidak memperlambat yang lain. Ada tombol "Buka" untuk langsung buka
+  web admin OLT di tab baru. Data disimpan di `include/olt.json` (bukan di
+  config.php, karena tidak terikat ke satu router).
+
 ## [2.0.1] - 2026-09-13
 ### Fixed
 - Laporan penjualan bulanan tidak lagi menemukan data di RouterOS 7.24.2+.
@@ -65,6 +76,7 @@ Baseline fork stabil pertama, di atas upstream Mikhmon v3.20
   router hanya mengirim data yang dipakai.
 
 [Unreleased]: https://github.com/mikrosetting99/mikhmon_mod/compare/main...HEAD
+[2.1.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/94f40db...main
 [2.0.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/a258a59...94f40db
 [2.0.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/a0fcee7...a258a59
 [1.0.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/947655a...a0fcee7

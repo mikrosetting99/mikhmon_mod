@@ -142,6 +142,9 @@ if (!isset($_SESSION["mikhmon"])) {
   } elseif ($id == "sessions" || $id == "remove" || $router == "new") {
     $ssesslist = "active";
     $mpage = $_admin_settings;
+  } elseif ($id == "olt") {
+    $solt = "active";
+    $mpage = "OLT Monitoring";
   } elseif ($id == "settings" && $session == "new") {
     $snsettings = "active";
     $mpage = $_add_router;
@@ -220,6 +223,7 @@ if($idleto != "disable"){
 } ?>  
   <a href="./admin.php?id=sessions" class="menu <?= $ssesslist; ?>"><i class="fa fa-gear"></i> <?= $_admin_settings ?></a>
   <a href="./admin.php?id=settings&router=new-<?= rand(1111,9999) ?>" class="menu <?= $snsettings ?>"><i class="fa fa-plus"></i> <?= $_add_router ?></a>
+  <a href="./admin.php?id=olt" class="menu <?= $solt; ?>"><i class="fa fa-share-alt"></i> OLT Monitoring</a>
   <a href="./admin.php?id=about" class="menu <?= $sabout; ?>"><i class="fa fa-info-circle"></i> <?= $_about ?></a>
 
 </div>
@@ -357,6 +361,8 @@ include('./info.php');
   <a href="./?interface=traffic-monitor&session=<?= $session; ?>" class="menu <?= $strafficmonitor; ?>"><i class=" fa fa-area-chart"></i> <?= $_traffic_monitor ?></a>
   <!--report-->
   <a href="./?report=selling&idbl=<?= strtolower(date("M")) . date("Y"); ?>&session=<?= $session; ?>" class="menu <?= $sselling; ?>"><i class="nav-icon fa fa-money"></i> <?= $_report ?></a>
+  <!--olt-->
+  <a href="./admin.php?id=olt" class="menu <?= $solt; ?>"><i class="fa fa-share-alt"></i> OLT Monitoring</a>
   <!--settings-->
   <div class="dropdown-btn <?= $ssett; ?>"><i class=" fa fa-gear"></i> <?= $_settings ?> 
     <i class="fa fa-caret-down"></i> &nbsp;

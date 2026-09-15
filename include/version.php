@@ -8,6 +8,6 @@ if (!isset($_SESSION["mikhmon"])) {
         // Versi fork ini sendiri (mikrosetting99/mikhmon_mod), terpisah dari
         // versi upstream di atas. Naikkan tiap ada rilis baru dan catat di
         // CHANGELOG.md — lihat file itu untuk aturan penomorannya.
-        $_SESSION["fv"] = "2.0.1";
+        $_SESSION["fv"] = "2.1.0";
 
     }

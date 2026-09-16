@@ -18,11 +18,16 @@
 session_start();
 // hide all error
 error_reporting(0);
+require_once __DIR__ . '/../include/roscompat.php';
 if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
 
   $getpprofile = $API->comm("/ppp/profile/print");
+
+  $isolirFile = __DIR__ . '/../include/pppisolir.json';
+  $isolirAll = ros_ppp_isolir_settings_load($isolirFile);
+  $isolirProfile = isset($isolirAll[$session]['profile']) ? $isolirAll[$session]['profile'] : '';
 
   // $secretbyname boleh berupa .id (*1) atau nama secret.
   if (substr($secretbyname, 0, 1) != "*") {
@@ -39,6 +44,21 @@ if (!isset($_SESSION["mikhmon"])) {
     $remoteaddr = ($_POST['remoteaddr']);
     $comment    = ($_POST['comment']);
     $disabled   = ($_POST['disabled']);
+    $dueDate    = ($_POST['due_date']);
+
+    // Profile yang disimpan di tag isolir adalah "profile asal" (tujuan
+    // pemulihan saat tanggal jatuh tempo diperpanjang) — kalau staff
+    // menyimpan while secret ini SEDANG di profile isolir, jangan catat
+    // profile isolir itu sendiri sebagai profile asal, pertahankan yang lama.
+    $origProfileForTag = $profile;
+    if ($isolirProfile != '' && $profile === $isolirProfile) {
+      $oldTag = ros_ppp_parse_isolir($_POST['old_comment_raw']);
+      if ($oldTag !== null && $oldTag['orig_profile'] != '') {
+        $origProfileForTag = $oldTag['orig_profile'];
+      }
+    }
+
+    $finalComment = ros_ppp_compose_isolir($dueDate, $origProfileForTag, $comment);
 
     $API->comm("/ppp/secret/set", array(
       ".id"            => "$secretbyname",
@@ -48,9 +68,13 @@ if (!isset($_SESSION["mikhmon"])) {
       "profile"        => "$profile",
       "local-address"  => "$localaddr",
       "remote-address" => "$remoteaddr",
-      "comment"        => "$comment",
+      "comment"        => "$finalComment",
       "disabled"       => "$disabled",
     ));
+
+    if ($dueDate != '') {
+      ros_ensure_ppp_isolir_scheduler($API, $isolirProfile);
+    }
 
     echo "<script>window.location='./?ppp=secrets&session=" . $session . "'</script>";
   }
@@ -63,8 +87,13 @@ if (!isset($_SESSION["mikhmon"])) {
   $sprof    = $s['profile'];
   $slocal   = $s['local-address'];
   $sremote  = $s['remote-address'];
-  $scomment = $s['comment'];
+  $scommentRaw = $s['comment'];
   $sdis     = $s['disabled'];
+
+  $isolirTag = ros_ppp_parse_isolir($scommentRaw);
+  $sdueDate  = $isolirTag !== null ? $isolirTag['due'] : '';
+  $scomment  = $isolirTag !== null ? $isolirTag['rest'] : $scommentRaw;
+  $sIsIsolated = ($isolirProfile != '' && $sprof === $isolirProfile);
 
   if ($sname == "") {
     echo "<b>PPP Secret not found, redirect to secret list...</b>";
@@ -93,6 +122,7 @@ if (!isset($_SESSION["mikhmon"])) {
       </div>
       <div class="card-body">
         <form autocomplete="off" method="post" action="">
+          <input type="hidden" name="old_comment_raw" value="<?= htmlspecialchars($scommentRaw); ?>">
           <div>
             <a class="btn bg-warning" href="./?ppp=secrets&session=<?= $session; ?>"><i class="fa fa-close"></i> <?= $_close ?></a>
             <button type="submit" onclick="loader()" class="btn bg-primary" name="save"><i class="fa fa-save"></i> <?= $_save ?></button>
@@ -169,6 +199,15 @@ if (!isset($_SESSION["mikhmon"])) {
               <td class="align-middle"><?= $_comment ?></td>
               <td><input class="form-control" type="text" name="comment" value="<?= $scomment; ?>"></td>
             </tr>
+            <tr>
+              <td class="align-middle">Tanggal Jatuh Tempo</td>
+              <td>
+                <input class="form-control" type="date" name="due_date" value="<?= $sdueDate; ?>">
+                <?php if ($sIsIsolated) { ?>
+                  <small class="text-danger"><i class="fa fa-ban"></i> Sedang diisolir (profile: <?= $isolirProfile; ?>). Ubah Profile di atas &amp; Tanggal Jatuh Tempo ke tanggal baru, lalu Simpan untuk memulihkan.</small>
+                <?php } ?>
+              </td>
+            </tr>
           </table>
         </form>
       </div>
@@ -193,6 +232,18 @@ if (!isset($_SESSION["mikhmon"])) {
           </tr>
           <tr><td class="align-middle">IP</td><td><?= ($aaddr == "") ? "-" : $aaddr; ?></td></tr>
           <tr><td class="align-middle"><?= $_uptime ?></td><td><?= ($auptm == "") ? "-" : $auptm; ?></td></tr>
+          <tr>
+            <td class="align-middle">Isolir</td>
+            <td>
+<?php if ($sdueDate == '') {
+        echo "<span class='text-grey'>tidak dipakai</span>";
+      } elseif ($sIsIsolated) {
+        echo "<span class='text-danger'><i class='fa fa-ban'></i> diisolir (jatuh tempo " . $sdueDate . ")</span>";
+      } else {
+        echo "<span class='text-success'><i class='fa fa-check-circle'></i> aktif s/d " . $sdueDate . "</span>";
+      } ?>
+            </td>
+          </tr>
         </table>
       </div>
     </div>

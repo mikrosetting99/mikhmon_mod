@@ -12,6 +12,24 @@ nomor versi upstream Mikhmon (`v3.20`, masih dirujuk di halaman About).
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-09-16
+### Added
+- Auto isolir PPPoE: secret yang diberi **Tanggal Jatuh Tempo** (form
+  Tambah/Edit PPP Secret) otomatis dipindah ke profile isolir pilihan begitu
+  tanggalnya lewat — dicek router tiap jam lewat scheduler
+  `mikhmon-ppp-isolir` yang dibuat/diperbarui otomatis. Profile tujuan
+  (mis. "Isolir") diatur sekali per router session di halaman PPP Secrets
+  (kartu baru "Auto Isolir"); kosongkan pilihannya untuk mematikan fitur ini.
+  Tanggal jatuh tempo diisi manual per pelanggan, bukan dihitung otomatis
+  dari tanggal aktivasi/pembayaran.
+  Data tanggal disimpan sebagai tag di depan Comment secret
+  (`ISOLIR|<tanggal>|<profile-asal>|<comment asli>`) supaya tidak perlu
+  field baru di RouterOS; profile asal ikut dicatat supaya begitu
+  diperpanjang, staff cukup ganti tanggal dan (kalau perlu) profile —
+  fitur ini tidak menghapus/menonaktifkan secret, hanya memindah profile.
+  Pengaturan profile isolir per session disimpan di `include/pppisolir.json`
+  (pola sama dengan `include/olt.json`).
+
 ## [2.1.1] - 2026-09-15
 ### Changed
 - Monitoring OLT (2.1.0) sekarang **terikat per router session**, bukan satu
@@ -86,7 +104,8 @@ Baseline fork stabil pertama, di atas upstream Mikhmon v3.20
   router hanya mengirim data yang dipakai.
 
 [Unreleased]: https://github.com/mikrosetting99/mikhmon_mod/compare/main...HEAD
-[2.1.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/24863a3...main
+[2.2.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/43c5aa3...main
+[2.1.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/24863a3...43c5aa3
 [2.1.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/94f40db...24863a3
 [2.0.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/a258a59...94f40db
 [2.0.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/a0fcee7...a258a59

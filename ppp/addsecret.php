@@ -18,11 +18,16 @@
 session_start();
 // hide all error
 error_reporting(0);
+require_once __DIR__ . '/../include/roscompat.php';
 if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
 
   $getpprofile = $API->comm("/ppp/profile/print");
+
+  $isolirFile = __DIR__ . '/../include/pppisolir.json';
+  $isolirAll = ros_ppp_isolir_settings_load($isolirFile);
+  $isolirProfile = isset($isolirAll[$session]['profile']) ? $isolirAll[$session]['profile'] : '';
 
   if (isset($_POST['name'])) {
     $name       = (preg_replace('/\s+/', '', $_POST['name']));
@@ -32,6 +37,9 @@ if (!isset($_SESSION["mikhmon"])) {
     $localaddr  = ($_POST['localaddr']);
     $remoteaddr = ($_POST['remoteaddr']);
     $comment    = ($_POST['comment']);
+    $dueDate    = ($_POST['due_date']);
+
+    $finalComment = ros_ppp_compose_isolir($dueDate, $profile, $comment);
 
     $API->comm("/ppp/secret/add", array(
       "name"           => "$name",
@@ -40,9 +48,13 @@ if (!isset($_SESSION["mikhmon"])) {
       "profile"        => "$profile",
       "local-address"  => "$localaddr",
       "remote-address" => "$remoteaddr",
-      "comment"        => "$comment",
+      "comment"        => "$finalComment",
       "disabled"       => "no",
     ));
+
+    if ($dueDate != '') {
+      ros_ensure_ppp_isolir_scheduler($API, $isolirProfile);
+    }
 
     echo "<script>window.location='./?ppp=secrets&session=" . $session . "'</script>";
   }
@@ -123,6 +135,10 @@ if (!isset($_SESSION["mikhmon"])) {
               <td class="align-middle"><?= $_comment ?></td>
               <td><input class="form-control" type="text" name="comment" value=""></td>
             </tr>
+            <tr>
+              <td class="align-middle">Tanggal Jatuh Tempo</td>
+              <td><input class="form-control" type="date" name="due_date" value=""></td>
+            </tr>
           </table>
         </form>
       </div>
@@ -143,6 +159,14 @@ if (!isset($_SESSION["mikhmon"])) {
           <b>Local</b> dan <b>Remote Address</b> boleh dikosongkan — nilainya akan
           mengikuti profile. Isi <b>Remote Address</b> hanya bila pelanggan ini
           butuh IP tetap.
+        </p>
+        <p style="padding:0px 5px;">
+          <b>Tanggal Jatuh Tempo</b> opsional — kalau diisi, router otomatis
+          memindahkan pelanggan ini ke profile isolir begitu tanggal itu lewat.
+          Kosongkan kalau tidak pakai auto isolir untuk pelanggan ini.
+          <?php if ($isolirProfile == '') { ?>
+            <br><span class="text-warning"><i class="fa fa-warning"></i> Profile isolir belum diatur — atur dulu di halaman <a href="./?ppp=secrets&session=<?= $session; ?>">PPP Secrets</a>.</span>
+          <?php } ?>
         </p>
       </div>
     </div>

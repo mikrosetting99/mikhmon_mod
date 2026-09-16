@@ -231,3 +231,134 @@ function ros_month_matches($sourceDate, $idbl)
     }
     return strtolower(substr($sourceDate, 0, 3)) . substr($sourceDate, -4) === strtolower($idbl);
 }
+
+/* ==================================================================
+ * Auto isolir PPPoE — tanggal jatuh tempo per secret disimpan sebagai tag
+ * di depan comment PPP secret: "ISOLIR|<due:Y-m-d>|<orig-profile>|<sisa
+ * comment bebas>". Tag ini yang dibaca baik oleh PHP (untuk tampilan &
+ * form) maupun oleh script scheduler di router (untuk isolir otomatis).
+ * ================================================================== */
+
+/**
+ * Pecah comment PPP secret jadi due date, profile asal, dan sisa teks
+ * bebas. Null kalau secret ini tidak punya tanggal jatuh tempo.
+ */
+function ros_ppp_parse_isolir($comment)
+{
+    if (substr($comment, 0, 7) !== 'ISOLIR|') {
+        return null;
+    }
+    $parts = explode('|', substr($comment, 7), 3);
+    return array(
+        'due' => isset($parts[0]) ? $parts[0] : '',
+        'orig_profile' => isset($parts[1]) ? $parts[1] : '',
+        'rest' => isset($parts[2]) ? $parts[2] : '',
+    );
+}
+
+/**
+ * Susun kembali comment PPP secret dengan tag isolir di depan. Tanpa
+ * due date, comment ditulis apa adanya (fitur ini opt-in per secret).
+ */
+function ros_ppp_compose_isolir($due, $origProfile, $rest)
+{
+    if ($due == '') {
+        return $rest;
+    }
+    return 'ISOLIR|' . $due . '|' . $origProfile . '|' . $rest;
+}
+
+/**
+ * Nama tetap scheduler pengecek isolir di router — satu per router,
+ * bukan per secret, supaya gampang dicari/ditimpa ulang saat profile
+ * isolir diganti dari Mikhmon.
+ */
+function ros_ppp_isolir_scheduler_name()
+{
+    return 'mikhmon-ppp-isolir';
+}
+
+/**
+ * Bangun script scheduler: jalan berkala, cek semua PPP secret yang
+ * bertag ISOLIR|, pindahkan ke profile isolir begitu lewat tanggal jatuh
+ * tempo. Memakai ros_fn_dateint() yang sama dipakai roscompat lain supaya
+ * tetap benar baik router masih format tanggal v6 ("mmm/dd/yyyy") maupun
+ * ISO v7.10+ ("yyyy-mm-dd") — due date yang ditulis Mikhmon sendiri selalu
+ * ISO, dan ros_fn_dateint() sudah mengenali format itu juga.
+ */
+function ros_build_ppp_isolir_checker($isolirProfile)
+{
+    $isolirProfile = str_replace('"', '', $isolirProfile);
+    return ros_fn_dateint() . '; ' .
+        ':local todayD [/system clock get date]; ' .
+        ':local todayInt [$dint d=$todayD]; ' .
+        ':local isolirProfile "' . $isolirProfile . '"; ' .
+        ':foreach i in [/ppp secret find] do={' .
+        ':local cm [/ppp secret get $i comment]; ' .
+        ':if ([:len $cm] > 7 && [:pick $cm 0 7] = "ISOLIR|") do={' .
+        ':local rest [:pick $cm 7 [:len $cm]]; ' .
+        ':local p1 [:find $rest "|"]; ' .
+        ':if ([:typeof $p1] = "num") do={' .
+        ':local dueDate [:pick $rest 0 $p1]; ' .
+        ':local dueInt [$dint d=$dueDate]; ' .
+        ':local curProfile [/ppp secret get $i profile]; ' .
+        ':if ($dueInt < $todayInt && $curProfile != $isolirProfile) do={' .
+        '/ppp secret set $i profile=$isolirProfile' .
+        '}' .
+        '}' .
+        '}' .
+        '}';
+}
+
+/**
+ * Pastikan scheduler pengecek isolir ada di router dan memakai profile
+ * isolir yang sedang berlaku. Dipanggil tiap kali pengaturan isolir
+ * disimpan, atau tiap kali secret dengan due date disimpan (jaga-jaga
+ * kalau admin belum sempat buka halaman pengaturan).
+ */
+function ros_ensure_ppp_isolir_scheduler($API, $isolirProfile)
+{
+    if ($isolirProfile == '') {
+        return;
+    }
+    $name = ros_ppp_isolir_scheduler_name();
+    $script = ros_build_ppp_isolir_checker($isolirProfile);
+    $existing = $API->comm('/system/scheduler/print', array('?name' => $name));
+    if (!empty($existing) && isset($existing[0]['.id'])) {
+        $API->comm('/system/scheduler/set', array(
+            '.id' => $existing[0]['.id'],
+            'on-event' => $script,
+            'interval' => '1h',
+            'disabled' => 'no',
+        ));
+    } else {
+        $API->comm('/system/scheduler/add', array(
+            'name' => $name,
+            'start-time' => 'startup',
+            'interval' => '1h',
+            'on-event' => $script,
+            'disabled' => 'no',
+            'comment' => 'Mikhmon: auto isolir PPPoE jatuh tempo',
+        ));
+    }
+}
+
+/**
+ * Muat/simpan pengaturan isolir per session (nama profile tujuan isolir).
+ * Tidak masuk include/config.php karena formatnya posisi-tetap dan rawan
+ * rusak kalau ditambah field baru — dict JSON terpisah, sama pola dengan
+ * include/olt.json.
+ */
+function ros_ppp_isolir_settings_load($file)
+{
+    if (!file_exists($file)) {
+        return array();
+    }
+    $data = json_decode(file_get_contents($file), true);
+    return is_array($data) ? $data : array();
+}
+
+function ros_ppp_isolir_settings_save($file, $all)
+{
+    file_put_contents($file, json_encode($all, JSON_PRETTY_PRINT));
+}

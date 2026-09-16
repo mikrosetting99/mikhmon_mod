@@ -23,6 +23,21 @@ if (!isset($_SESSION["mikhmon"])) {
 } else {
 
   require_once __DIR__ . '/../include/pagination.php';
+  require_once __DIR__ . '/../include/roscompat.php';
+
+  $isolirFile = __DIR__ . '/../include/pppisolir.json';
+  $isolirAll = ros_ppp_isolir_settings_load($isolirFile);
+  $isolirProfile = isset($isolirAll[$session]['profile']) ? $isolirAll[$session]['profile'] : '';
+
+  if (isset($_POST['save_isolir_profile'])) {
+    $isolirProfile = trim($_POST['isolir_profile']);
+    $isolirAll[$session] = array('profile' => $isolirProfile);
+    ros_ppp_isolir_settings_save($isolirFile, $isolirAll);
+    if ($isolirProfile != '') {
+      ros_ensure_ppp_isolir_scheduler($API, $isolirProfile);
+    }
+    echo "<script>window.location='./?ppp=secrets&session=" . $session . "'</script>";
+  }
 
   $fprofile = $_GET['pprofile'];
 
@@ -55,6 +70,37 @@ if (!isset($_SESSION["mikhmon"])) {
 
   $getpprofile = $API->comm("/ppp/profile/print");
 ?>
+<div class="row">
+  <div class="col-12">
+    <div class="card box-bordered">
+      <div class="card-header">
+        <h3><i class="fa fa-ban"></i> Auto Isolir</h3>
+      </div>
+      <div class="card-body">
+        <form autocomplete="off" method="post" action="" class="input-group">
+          <div class="input-group-9">
+            <select class="group-item group-item-l" name="isolir_profile" title="Profile tujuan saat pelanggan jatuh tempo">
+              <option value="">-- Nonaktifkan auto isolir --</option>
+              <?php for ($i = 0; $i < count($getpprofile); $i++) {
+                $pn = $getpprofile[$i]['name'];
+                echo '<option' . ($pn == $isolirProfile ? ' selected' : '') . '>' . $pn . '</option>';
+              } ?>
+            </select>
+          </div>
+          <div class="input-group-3">
+            <button type="submit" name="save_isolir_profile" class="group-item group-item-r bg-primary" style="cursor:pointer;">Simpan</button>
+          </div>
+        </form>
+        <small class="text-grey">
+          Secret PPPoE yang diberi Tanggal Jatuh Tempo (di form Tambah/Edit) otomatis
+          dipindah ke profile ini begitu tanggalnya lewat — dicek router tiap jam.
+          Buat dulu profile-nya di menu Profil PPP (rate-limit kecil / redirect ke
+          halaman tagihan), baru pilih di sini.
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="row">
   <div class="col-12">
     <div class="card box-bordered">
@@ -104,13 +150,14 @@ if (!isset($_SESSION["mikhmon"])) {
                 <th><?= $_profile ?></th>
                 <th>Remote Address</th>
                 <th>Status</th>
+                <th>Jatuh Tempo</th>
                 <th><?= $_comment ?></th>
               </tr>
             </thead>
             <tbody>
 <?php
   if ($TotalReg == 0) {
-    echo "<tr><td colspan='8' class='text-center text-grey'>"
+    echo "<tr><td colspan='9' class='text-center text-grey'>"
        . ($cari != "" ? "Tidak ada hasil untuk \"" . htmlspecialchars($cari) . "\"." : "Belum ada user PPPoE.")
        . "</td></tr>";
   }
@@ -122,8 +169,12 @@ if (!isset($_SESSION["mikhmon"])) {
     $ssrv     = $s['service'];
     $sprof    = $s['profile'];
     $sremote  = $s['remote-address'];
-    $scomment = $s['comment'];
     $sdis     = $s['disabled'];
+
+    $isolirTag = ros_ppp_parse_isolir($s['comment']);
+    $scomment  = $isolirTag !== null ? $isolirTag['rest'] : $s['comment'];
+    $sdueDate  = $isolirTag !== null ? $isolirTag['due'] : '';
+    $sIsIsolated = ($isolirProfile != '' && $sprof === $isolirProfile);
 ?>
               <tr>
                 <td style="text-align:center;">
@@ -149,6 +200,17 @@ if (!isset($_SESSION["mikhmon"])) {
       echo "<span class='text-success'><i class='fa fa-circle'></i> online " . $online[$sname] . "</span>";
     } else {
       echo "<span class='text-grey'><i class='fa fa-circle-o'></i> offline</span>";
+    }
+?>
+                </td>
+                <td>
+<?php
+    if ($sdueDate == '') {
+      echo "<span class='text-grey'>-</span>";
+    } elseif ($sIsIsolated) {
+      echo "<span class='text-danger'><i class='fa fa-ban'></i> " . $sdueDate . "</span>";
+    } else {
+      echo "<span class='text-success'>" . $sdueDate . "</span>";
     }
 ?>
                 </td>

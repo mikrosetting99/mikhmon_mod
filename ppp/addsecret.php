@@ -41,22 +41,34 @@ if (!isset($_SESSION["mikhmon"])) {
 
     $finalComment = ros_ppp_compose_isolir($dueDate, $profile, $comment);
 
-    $API->comm("/ppp/secret/add", array(
-      "name"           => "$name",
-      "password"       => "$password",
-      "service"        => "$service",
-      "profile"        => "$profile",
-      "local-address"  => "$localaddr",
-      "remote-address" => "$remoteaddr",
-      "comment"        => "$finalComment",
-      "disabled"       => "no",
-    ));
-
-    if ($dueDate != '') {
-      ros_ensure_ppp_isolir_scheduler($API, $isolirProfile);
+    // local-address / remote-address dikirim ke router HANYA kalau diisi.
+    // RouterOS menolak string kosong sebagai nilai address ("invalid value
+    // for argument address") — mengosongkan field ini di form dimaksudkan
+    // supaya secret ikut default dari profile, bukan diset ke alamat kosong.
+    $addArgs = array(
+      "name"     => "$name",
+      "password" => "$password",
+      "service"  => "$service",
+      "profile"  => "$profile",
+      "comment"  => "$finalComment",
+      "disabled" => "no",
+    );
+    if ($localaddr != '') {
+      $addArgs["local-address"] = "$localaddr";
+    }
+    if ($remoteaddr != '') {
+      $addArgs["remote-address"] = "$remoteaddr";
     }
 
-    echo "<script>window.location='./?ppp=secrets&session=" . $session . "'</script>";
+    $addResult = $API->comm("/ppp/secret/add", $addArgs);
+    $addError = ros_trap_message($addResult);
+
+    if ($addError === null) {
+      if ($dueDate != '') {
+        ros_ensure_ppp_isolir_scheduler($API, $isolirProfile);
+      }
+      echo "<script>window.location='./?ppp=secrets&session=" . $session . "'</script>";
+    }
   }
 ?>
 <script>
@@ -74,6 +86,11 @@ if (!isset($_SESSION["mikhmon"])) {
         </h3>
       </div>
       <div class="card-body">
+<?php if (!empty($addError)) { ?>
+        <div class="bg-danger" style="padding:8px 10px; border-radius:5px; margin-bottom:10px;">
+          <i class="fa fa-ban"></i> Gagal menambah secret — router menolak: <b><?= htmlspecialchars($addError); ?></b>
+        </div>
+<?php } ?>
         <form autocomplete="off" method="post" action="">
           <div>
             <a class="btn bg-warning" href="./?ppp=secrets&session=<?= $session; ?>"><i class="fa fa-close"></i> <?= $_close ?></a>

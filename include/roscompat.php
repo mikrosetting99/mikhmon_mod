@@ -362,3 +362,18 @@ function ros_ppp_isolir_settings_save($file, $all)
 {
     file_put_contents($file, json_encode($all, JSON_PRETTY_PRINT));
 }
+
+/**
+ * routeros_api.class.php->comm() mengembalikan array ber-key "!trap" kalau
+ * router menolak command (permission, validasi field, dll) — tidak pernah
+ * dicek di mana pun sebelumnya, jadi kegagalan seperti itu selama ini
+ * senyap (redirect tetap jalan seolah berhasil). Kembalikan pesan errornya
+ * kalau ada, null kalau command sukses.
+ */
+function ros_trap_message($result)
+{
+    if (!is_array($result) || !isset($result['!trap'][0]['message'])) {
+        return null;
+    }
+    return $result['!trap'][0]['message'];
+}

@@ -12,6 +12,23 @@ nomor versi upstream Mikhmon (`v3.20`, masih dirujuk di halaman About).
 
 ## [Unreleased]
 
+## [2.2.1] - 2026-09-17
+### Fixed
+- Tambah/Edit PPP Secret gagal total (secret tidak tersimpan sama sekali)
+  begitu field **Local Address** atau **Remote Address** dikosongkan —
+  router menolak dengan `invalid value for argument address` karena
+  Mikhmon mengirim field itu sebagai string kosong ke RouterOS API
+  (`=local-address=` tanpa nilai), padahal seharusnya field itu tidak
+  dikirim sama sekali kalau memang mau dikosongkan/ikut default profile.
+  Kegagalan ini sebelumnya **senyap** — halaman tetap redirect ke daftar
+  secret seolah berhasil, jadi tidak ada tanda apa pun bahwa proses
+  tambah/edit gagal.
+- Semua respons `!trap` (penolakan) dari RouterOS API sekarang ditangkap
+  dan ditampilkan sebagai pesan error di halaman Tambah/Edit PPP Secret
+  (`ros_trap_message()` baru di `include/roscompat.php`) — sebelumnya
+  tidak ada satu pun halaman di aplikasi ini yang memeriksa `!trap`, jadi
+  kegagalan apa pun dari router (nama duplikat, dsb.) selalu senyap.
+
 ## [2.2.0] - 2026-09-16
 ### Added
 - Auto isolir PPPoE: secret yang diberi **Tanggal Jatuh Tempo** (form
@@ -104,7 +121,8 @@ Baseline fork stabil pertama, di atas upstream Mikhmon v3.20
   router hanya mengirim data yang dipakai.
 
 [Unreleased]: https://github.com/mikrosetting99/mikhmon_mod/compare/main...HEAD
-[2.2.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/43c5aa3...main
+[2.2.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/c3cf148...main
+[2.2.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/43c5aa3...c3cf148
 [2.1.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/24863a3...43c5aa3
 [2.1.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/94f40db...24863a3
 [2.0.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/a258a59...94f40db

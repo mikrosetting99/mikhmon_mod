@@ -60,23 +60,37 @@ if (!isset($_SESSION["mikhmon"])) {
 
     $finalComment = ros_ppp_compose_isolir($dueDate, $origProfileForTag, $comment);
 
-    $API->comm("/ppp/secret/set", array(
-      ".id"            => "$secretbyname",
-      "name"           => "$name",
-      "password"       => "$password",
-      "service"        => "$service",
-      "profile"        => "$profile",
-      "local-address"  => "$localaddr",
-      "remote-address" => "$remoteaddr",
-      "comment"        => "$finalComment",
-      "disabled"       => "$disabled",
-    ));
-
-    if ($dueDate != '') {
-      ros_ensure_ppp_isolir_scheduler($API, $isolirProfile);
+    // Sama seperti di addsecret.php: kirim local-address/remote-address
+    // hanya kalau diisi. RouterOS menolak string kosong sebagai nilai
+    // address ("invalid value for argument address"). Konsekuensinya field
+    // yang sudah pernah diisi tidak bisa dikosongkan lagi lewat form ini
+    // (tetap dipertahankan nilainya di router) — itu masih lebih baik
+    // daripada seluruh proses Simpan gagal total seperti sebelumnya.
+    $setArgs = array(
+      ".id"      => "$secretbyname",
+      "name"     => "$name",
+      "password" => "$password",
+      "service"  => "$service",
+      "profile"  => "$profile",
+      "comment"  => "$finalComment",
+      "disabled" => "$disabled",
+    );
+    if ($localaddr != '') {
+      $setArgs["local-address"] = "$localaddr";
+    }
+    if ($remoteaddr != '') {
+      $setArgs["remote-address"] = "$remoteaddr";
     }
 
-    echo "<script>window.location='./?ppp=secrets&session=" . $session . "'</script>";
+    $setResult = $API->comm("/ppp/secret/set", $setArgs);
+    $setError = ros_trap_message($setResult);
+
+    if ($setError === null) {
+      if ($dueDate != '') {
+        ros_ensure_ppp_isolir_scheduler($API, $isolirProfile);
+      }
+      echo "<script>window.location='./?ppp=secrets&session=" . $session . "'</script>";
+    }
   }
 
   $getsecret = $API->comm("/ppp/secret/print", array("?.id" => "$secretbyname"));
@@ -121,6 +135,11 @@ if (!isset($_SESSION["mikhmon"])) {
         </h3>
       </div>
       <div class="card-body">
+<?php if (!empty($setError)) { ?>
+        <div class="bg-danger" style="padding:8px 10px; border-radius:5px; margin-bottom:10px;">
+          <i class="fa fa-ban"></i> Gagal menyimpan — router menolak: <b><?= htmlspecialchars($setError); ?></b>
+        </div>
+<?php } ?>
         <form autocomplete="off" method="post" action="">
           <input type="hidden" name="old_comment_raw" value="<?= htmlspecialchars($scommentRaw); ?>">
           <div>

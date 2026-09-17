@@ -280,8 +280,9 @@ function ros_ppp_isolir_scheduler_name()
 
 /**
  * Bangun script scheduler: jalan berkala, cek semua PPP secret yang
- * bertag ISOLIR|, pindahkan ke profile isolir begitu lewat tanggal jatuh
- * tempo. Memakai ros_fn_dateint() yang sama dipakai roscompat lain supaya
+ * bertag ISOLIR|, pindahkan ke profile isolir begitu tanggal jatuh tempo
+ * tiba (dueDate <= hari ini, bukan menunggu satu hari lagi lewat).
+ * Memakai ros_fn_dateint() yang sama dipakai roscompat lain supaya
  * tetap benar baik router masih format tanggal v6 ("mmm/dd/yyyy") maupun
  * ISO v7.10+ ("yyyy-mm-dd") — due date yang ditulis Mikhmon sendiri selalu
  * ISO, dan ros_fn_dateint() sudah mengenali format itu juga.
@@ -302,7 +303,7 @@ function ros_build_ppp_isolir_checker($isolirProfile)
         ':local dueDate [:pick $rest 0 $p1]; ' .
         ':local dueInt [$dint d=$dueDate]; ' .
         ':local curProfile [/ppp secret get $i profile]; ' .
-        ':if ($dueInt < $todayInt && $curProfile != $isolirProfile) do={' .
+        ':if ($dueInt <= $todayInt && $curProfile != $isolirProfile) do={' .
         '/ppp secret set $i profile=$isolirProfile' .
         '}' .
         '}' .

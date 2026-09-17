@@ -12,6 +12,21 @@ nomor versi upstream Mikhmon (`v3.20`, masih dirujuk di halaman About).
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-09-17
+### Fixed
+- Secret yang Tanggal Jatuh Tempo-nya **persis hari ini** belum diisolir
+  oleh scheduler — script yang dibuat memakai perbandingan "lebih kecil
+  dari" (`$dueInt < $todayInt`) sehingga baru dianggap lewat mulai besok.
+  Diganti jadi "lebih kecil atau sama dengan" (`<=`) supaya isolir jalan
+  tepat di hari H, bukan H+1 (`ros_build_ppp_isolir_checker()` di
+  `include/roscompat.php`).
+  **Perlu tindakan:** perbaikan ini cuma berlaku untuk scheduler yang baru
+  dibuat/diperbarui. Router yang sudah lebih dulu punya scheduler
+  `mikhmon-ppp-isolir` (dibuat sebelum versi ini) masih menjalankan script
+  lama sampai di-refresh — cukup buka PPP Secrets, klik Simpan lagi di
+  kartu Auto Isolir (boleh tanpa mengubah pilihan profile), atau edit
+  salah satu secret yang punya Tanggal Jatuh Tempo dan Simpan.
+
 ## [2.3.0] - 2026-09-17
 ### Added
 - Tombol **"Aktifkan"** untuk memulihkan PPPoE secret yang sedang diisolir
@@ -131,7 +146,8 @@ Baseline fork stabil pertama, di atas upstream Mikhmon v3.20
   router hanya mengirim data yang dipakai.
 
 [Unreleased]: https://github.com/mikrosetting99/mikhmon_mod/compare/main...HEAD
-[2.3.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/8cbeda8...main
+[2.3.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/ab6f1d0...main
+[2.3.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/8cbeda8...ab6f1d0
 [2.2.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/c3cf148...8cbeda8
 [2.2.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/43c5aa3...c3cf148
 [2.1.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/24863a3...43c5aa3

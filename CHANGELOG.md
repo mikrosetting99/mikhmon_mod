@@ -12,6 +12,16 @@ nomor versi upstream Mikhmon (`v3.20`, masih dirujuk di halaman About).
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-09-17
+### Added
+- Tombol **"Aktifkan"** untuk memulihkan PPPoE secret yang sedang diisolir
+  (atau memperpanjang yang belum jatuh tempo), muncul di daftar PPP
+  Secrets dan di halaman Edit Secret kalau secret punya Tanggal Jatuh
+  Tempo. Satu klik: profile dikembalikan ke profile asal (sebelum
+  diisolir) dan Tanggal Jatuh Tempo otomatis diperpanjang 30 hari dari
+  hari ini — tidak perlu lagi ubah Profile dan Tanggal Jatuh Tempo manual
+  satu-satu di form Edit. Endpoint baru `process/pppactivate.php`.
+
 ## [2.2.1] - 2026-09-17
 ### Fixed
 - Tambah/Edit PPP Secret gagal total (secret tidak tersimpan sama sekali)
@@ -121,7 +131,8 @@ Baseline fork stabil pertama, di atas upstream Mikhmon v3.20
   router hanya mengirim data yang dipakai.
 
 [Unreleased]: https://github.com/mikrosetting99/mikhmon_mod/compare/main...HEAD
-[2.2.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/c3cf148...main
+[2.3.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/8cbeda8...main
+[2.2.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/c3cf148...8cbeda8
 [2.2.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/43c5aa3...c3cf148
 [2.1.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/24863a3...43c5aa3
 [2.1.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/94f40db...24863a3

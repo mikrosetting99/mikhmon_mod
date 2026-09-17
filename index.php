@@ -106,6 +106,7 @@ if (!isset($_SESSION["mikhmon"])) {
   $enablesecr = $_GET['enable-pppsecret'];
   $disablesecr = $_GET['disable-pppsecret'];
   $removesecr = $_GET['remove-pppsecret'];
+  $activatesecr = $_GET['activate-pppsecret'];
   $removepprofile = $_GET['remove-pprofile'];
   $removepactive = $_GET['remove-pactive'];
   $srv = $_GET['srv'];
@@ -450,6 +451,13 @@ elseif ($report == "export") {
     echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
 
     include_once('./process/psecret.php');
+  }
+
+// aktifkan / perpanjang secret (pulihkan dari isolir)
+  elseif ($activatesecr != "") {
+    echo "<b class='cl-w'><i class='fa fa-circle-o-notch fa-spin' style='font-size:24px'></i> Processing...</b>";
+
+    include_once('./process/pppactivate.php');
   }
 
 

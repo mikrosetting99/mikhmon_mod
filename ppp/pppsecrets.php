@@ -212,7 +212,12 @@ if (!isset($_SESSION["mikhmon"])) {
     } else {
       echo "<span class='text-success'>" . $sdueDate . "</span>";
     }
-?>
+    if ($sdueDate != '') { ?>
+      &nbsp;<span class="text-primary pointer" title="Aktifkan / perpanjang 30 hari dari hari ini, profile kembali ke profile asal"
+         onclick="if(confirm('Aktifkan <?= $sname; ?>? Profile kembali ke profile asal, jatuh tempo diperpanjang 30 hari dari hari ini.')){loadpage('./?activate-pppsecret=<?= $sid; ?>&session=<?= $session; ?>');loader();}else{}">
+        <i class="fa fa-refresh"></i> Aktifkan
+      </span>
+<?php } ?>
                 </td>
                 <td><?= $scomment; ?></td>
               </tr>

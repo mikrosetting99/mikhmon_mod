@@ -145,6 +145,10 @@ if (!isset($_SESSION["mikhmon"])) {
           <div>
             <a class="btn bg-warning" href="./?ppp=secrets&session=<?= $session; ?>"><i class="fa fa-close"></i> <?= $_close ?></a>
             <button type="submit" onclick="loader()" class="btn bg-primary" name="save"><i class="fa fa-save"></i> <?= $_save ?></button>
+<?php if ($sdueDate != '') { ?>
+            <a class="btn bg-success" href="javascript:void(0)" title="Profile kembali ke profile asal, jatuh tempo diperpanjang 30 hari dari hari ini"
+               onclick="if(confirm('Aktifkan <?= $sname; ?>? Profile kembali ke profile asal, jatuh tempo diperpanjang 30 hari dari hari ini.')){loadpage('./?activate-pppsecret=<?= $secretbyname; ?>&session=<?= $session; ?>');loader();}else{}"><i class="fa fa-refresh"></i> Aktifkan</a>
+<?php } ?>
 <?php if ($aid != "") { ?>
             <a class="btn bg-danger" href="javascript:void(0)"
                onclick="if(confirm('Disconnect <?= $sname; ?> now?')){loadpage('./?remove-pactive=<?= $aid; ?>&session=<?= $session; ?>');loader();}else{}"><i class="fa fa-plug"></i> Disconnect</a>

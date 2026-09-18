@@ -232,6 +232,32 @@ function ros_month_matches($sourceDate, $idbl)
     return strtolower(substr($sourceDate, 0, 3)) . substr($sourceDate, -4) === strtolower($idbl);
 }
 
+/**
+ * Ubah tanggal record penjualan ("mmm/dd/yyyy", dari source=) ATAU string
+ * bulan+tahun ala $idbl ("sep2026" — 3 huruf bulan + 4 digit tahun, format
+ * yang sama dipakai ros_month_matches) jadi integer YYYYMM yang bisa
+ * dibandingkan lebih besar/kecil. Dipakai fitur arsip data lama untuk
+ * memilih "semua record sebelum bulan X", bukan cuma match satu bulan
+ * persis seperti ros_month_matches.
+ */
+function ros_month_year_int($s)
+{
+    $months = array('jan' => 1, 'feb' => 2, 'mar' => 3, 'apr' => 4, 'may' => 5, 'jun' => 6,
+        'jul' => 7, 'aug' => 8, 'sep' => 9, 'oct' => 10, 'nov' => 11, 'dec' => 12);
+    if (strlen($s) < 7) {
+        return null;
+    }
+    $mon = strtolower(substr($s, 0, 3));
+    if (!isset($months[$mon])) {
+        return null;
+    }
+    $year = substr($s, -4);
+    if (!ctype_digit($year)) {
+        return null;
+    }
+    return ((int) $year) * 100 + $months[$mon];
+}
+
 /* ==================================================================
  * Auto isolir PPPoE — tanggal jatuh tempo per secret disimpan sebagai tag
  * di depan comment PPP secret: "ISOLIR|<due:Y-m-d>|<orig-profile>|<sisa

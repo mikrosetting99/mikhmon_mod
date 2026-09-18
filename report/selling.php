@@ -28,11 +28,14 @@ if (!isset($_SESSION["mikhmon"])) {
 	$getData  = array();
 	$idhr = $_GET['idhr'];
 	$idbl = $_GET['idbl'];
+	$idbefore = $_GET['idbefore']; // arsip: semua record SEBELUM bulan ini (format sama dengan $idbl, mis. "sep2026")
 	$idbl2 = explode("/",$idhr)[0].explode("/",$idhr)[2];
 	if ($idhr != ""){
 		$_SESSION['report'] = "&idhr=".$idhr;
 	} elseif ($idbl != ""){
 		$_SESSION['report'] = "&idbl=".$idbl;
+	} elseif ($idbefore != ""){
+		$_SESSION['report'] = "&idbefore=".$idbefore;
 	} else {
 		$_SESSION['report'] = "";
 	}
@@ -78,6 +81,26 @@ if (!isset($_SESSION["mikhmon"])) {
 				}
 			}
 
+		} elseif (strlen($idbefore) > "0") {
+			if ($API->connected) {
+				// Arsip: hapus SEMUA record dengan bulan+tahun sebelum $idbefore,
+				// bukan cuma satu bulan persis (beda dengan cabang $idbl di atas).
+				$API->write('/system/script/print', false);
+				$API->write('?comment=mikhmon', false);
+				$API->write('=.proplist=.id,source');
+				$ARREMD = $API->read();
+				$cutoff = ros_month_year_int($idbefore);
+				for ($i = 0; $i < count($ARREMD); $i++) {
+					$rowYM = ros_month_year_int($ARREMD[$i]['source']);
+					if ($rowYM === null || $cutoff === null || $rowYM >= $cutoff) {
+						continue;
+					}
+					$API->write('/system/script/remove', false);
+					$API->write('=.id=' . $ARREMD[$i]['.id']);
+					$READ = $API->read();
+
+				}
+			}
 		}
 		echo "<script>window.location='./?report=selling&session=" . $session . "'</script>";
 	}
@@ -87,6 +110,7 @@ if (!isset($_SESSION["mikhmon"])) {
 	} else {
 		$fprefix = "";
 	}
+	$noPaginate = false; // true di mode arsip ($idbefore) - CSV harus lengkap, bukan satu halaman
 	if (strlen($idhr) > "0") {
 		if ($API->connected) {
 			$getData = $API->comm("/system/script/print", array(
@@ -112,6 +136,25 @@ if (!isset($_SESSION["mikhmon"])) {
 		$filedownload = $idbl;
 		$shf = "hidden";
 		$shd = "inline-block";
+	} elseif (strlen($idbefore) > "0") {
+		if ($API->connected) {
+			// Arsip: semua record dengan bulan+tahun SEBELUM $idbefore, ditampilkan
+			// tanpa paginasi (lihat $noPaginate di bawah) supaya CSV yang diunduh
+			// dari sini selalu lengkap, bukan cuma satu halaman yang sedang tampil.
+			$getAllData = $API->comm("/system/script/print", array(
+				"?comment" => "mikhmon",
+			));
+			$cutoff = ros_month_year_int($idbefore);
+			$getData = array_values(array_filter($getAllData, function ($row) use ($cutoff) {
+				$rowYM = ros_month_year_int($row['source']);
+				return $rowYM !== null && $cutoff !== null && $rowYM < $cutoff;
+			}));
+			$TotalReg = count($getData);
+		}
+		$filedownload = "arsip-sebelum-" . $idbefore;
+		$shf = "hidden";
+		$shd = "inline-block";
+		$noPaginate = true;
 	} elseif ($idhr == "" || $idbl == "") {
 		if ($API->connected) {
 			$getData = $API->comm("/system/script/print", array(
@@ -240,9 +283,58 @@ $(document).ready(function(){
 </script>
 <div class="row">
 <div class="col-12">
+<div class="card box-bordered">
+<div class="card-header">
+	<h3><i class="fa fa-archive"></i> Arsipkan Data Lama</h3>
+</div>
+<div class="card-body">
+	<p style="padding:0px 5px;" class="text-grey">
+		Record penjualan tidak pernah terhapus otomatis dan terus menumpuk di
+		router. Pilih bulan di bawah untuk melihat &amp; mengunduh <b>semua</b>
+		record <b>sebelum</b> bulan itu (tidak dipaginasi, jadi CSV-nya lengkap),
+		lalu hapus dari router lewat tombol "Hapus Data" setelah yakin sudah
+		tersimpan.
+	</p>
+	<div class="input-group">
+		<div class="input-group-2 col-box-4">
+			<select style="padding:5px;" class="group-item group-item-l" title="Bulan" id="archM">
+				<?php
+					$idbls = array(1 => "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec");
+					$idblf = array(1 => "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+					for ($x = 1; $x <= 12; $x++) {
+						$sel = ($x == date("n")) ? " selected" : "";
+						echo "<option value='" . $idbls[$x] . "'" . $sel . ">" . $idblf[$x] . "</option>";
+					}
+				?>
+			</select>
+		</div>
+		<div class="input-group-2 col-box-3">
+			<select style="padding:5px;" class="group-item group-item-md" title="Tahun" id="archY">
+				<?php for ($y = date("Y"); $y >= 2018; $y--) { ?>
+					<option><?= $y; ?></option>
+				<?php } ?>
+			</select>
+		</div>
+		<div class="input-group-2 col-box-5">
+			<div class="group-item group-item-r text-center pointer" onclick="archiveGo();loader();"><i class="fa fa-search"></i> Lihat &amp; Unduh Arsip</div>
+		</div>
+	</div>
+</div>
+</div>
+</div>
+</div>
+<script type="text/javascript">
+	function archiveGo(){
+		var M = document.getElementById('archM').value;
+		var Y = document.getElementById('archY').value;
+		window.location='./?report=selling&idbefore='+M+Y+'&session=<?= $session; ?>';
+	}
+</script>
+<div class="row">
+<div class="col-12">
 <div class="card">
 <div class="card-header">
-	<h3><i class=" fa fa-money"></i> <?= $_selling_report ?> <?= ucfirst($idhr) . ucfirst(substr($idbl,0,3).' '.substr($idbl,3,5));	if ($prefix != "") {echo " prefix [" . $prefix . "]";} ?> <small id="loader" style="display: none;" ><i><i class='fa fa-circle-o-notch fa-spin'></i> <?= $_processing ?> </i></small></h3>
+	<h3><i class=" fa fa-money"></i> <?= $_selling_report ?> <?= ucfirst($idhr) . ucfirst(substr($idbl,0,3).' '.substr($idbl,3,5)); if (strlen($idbefore) > 0) { echo "Sebelum " . ucfirst(substr($idbefore,0,3)) . ' ' . substr($idbefore,3,5); } if ($prefix != "") {echo " prefix [" . $prefix . "]";} ?> <small id="loader" style="display: none;" ><i><i class='fa fa-circle-o-notch fa-spin'></i> <?= $_processing ?> </i></small></h3>
 </div>
 <div class="card-body">
 <div class="row">
@@ -393,7 +485,7 @@ $(document).ready(function(){
 				$_SESSION["totalresume"] = count($rows) . "/" . $totalresume;
 			}
 
-			$pg = mikhmon_paginate(count($rows));
+			$pg = $noPaginate ? mikhmon_paginate(count($rows), max(1, count($rows))) : mikhmon_paginate(count($rows));
 
 			for ($i = $pg["start"]; $i < $pg["end"]; $i++) {
 				$getname = $rows[$i];

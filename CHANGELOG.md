@@ -12,6 +12,24 @@ nomor versi upstream Mikhmon (`v3.20`, masih dirujuk di halaman About).
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-09-18
+### Added
+- Kartu **"Arsipkan Data Lama"** di halaman Laporan Penjualan: pilih bulan
+  cutoff, lalu lihat/unduh **semua** record penjualan sebelum bulan itu
+  sekaligus (lintas bulan, bukan cuma satu bulan seperti filter biasa),
+  baru hapus dari router lewat tombol Hapus Data yang sudah ada. Menjawab
+  keluhan berulang soal `/system script` yang terus menumpuk di router
+  karena Mikhmon memang tidak pernah menghapus record penjualan otomatis
+  (lihat catatan di `include/roscompat.php`) — sekarang ada jalan resmi
+  untuk membersihkannya tanpa kehilangan riwayat.
+  Tampilan mode arsip ini sengaja **tidak dipaginasi** (beda dari tabel
+  laporan biasa) supaya tombol Download CSV yang sudah ada selalu
+  mengambil seluruh data yang cocok, bukan cuma satu halaman yang sedang
+  tampil — kalau dipaginasi, resiko hapus data yang belum sempat
+  terunduh cukup nyata. `ros_month_year_int()` baru di
+  `include/roscompat.php` untuk perbandingan "sebelum bulan X" (beda
+  dari `ros_month_matches()` yang match satu bulan persis).
+
 ## [2.3.1] - 2026-09-17
 ### Fixed
 - Secret yang Tanggal Jatuh Tempo-nya **persis hari ini** belum diisolir
@@ -146,7 +164,8 @@ Baseline fork stabil pertama, di atas upstream Mikhmon v3.20
   router hanya mengirim data yang dipakai.
 
 [Unreleased]: https://github.com/mikrosetting99/mikhmon_mod/compare/main...HEAD
-[2.3.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/ab6f1d0...main
+[2.4.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/cc97a9b...main
+[2.3.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/ab6f1d0...cc97a9b
 [2.3.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/8cbeda8...ab6f1d0
 [2.2.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/c3cf148...8cbeda8
 [2.2.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/43c5aa3...c3cf148

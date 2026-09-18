@@ -1,11 +1,11 @@
 {
     "LAB": [
         {
-            "id": "olt_6aa8a0ca68ec3",
-            "name": "OLT-RUMAH FULAN",
-            "host": "103.76.120.216",
-            "port": 8182,
-            "protocol": "http"
+            "id": "olt_6aacdd3fa20f2",
+            "name": "OLT-LAB",
+            "host": "vpn-id1.mikrosetting.com",
+            "port": 5086,
+            "protocol": "https"
         }
     ]
 }

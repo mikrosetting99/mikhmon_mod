@@ -39,6 +39,22 @@ if (!isset($_SESSION["mikhmon"])) {
     echo "<script>window.location='./?ppp=secrets&session=" . $session . "'</script>";
   }
 
+  $fupFile = __DIR__ . '/../include/pppfup.json';
+  $fupAll = ros_ppp_fup_settings_load($fupFile);
+  $fupDowngradeProfile = isset($fupAll[$session]['downgrade_profile']) ? $fupAll[$session]['downgrade_profile'] : '';
+  $fupSecrets = isset($fupAll[$session]['secrets']) ? $fupAll[$session]['secrets'] : array();
+
+  if (isset($_POST['save_fup_profile'])) {
+    $fupDowngradeProfile = trim($_POST['fup_profile']);
+    $fupAll[$session]['downgrade_profile'] = $fupDowngradeProfile;
+    $fupAll[$session]['secrets'] = $fupSecrets;
+    ros_ppp_fup_settings_save($fupFile, $fupAll);
+    if ($fupDowngradeProfile != '') {
+      ros_ensure_ppp_fup_scheduler($API, $fupDowngradeProfile, $fupSecrets);
+    }
+    echo "<script>window.location='./?ppp=secrets&session=" . $session . "'</script>";
+  }
+
   $fprofile = $_GET['pprofile'];
 
   // .proplist sengaja tidak dipakai di sini — lihat catatan di hotspot/users.php.
@@ -66,6 +82,23 @@ if (!isset($_SESSION["mikhmon"])) {
   $online = array();
   for ($a = 0; $a < count($getactive); $a++) {
     $online[$getactive[$a]['name']] = $getactive[$a]['address'];
+  }
+
+  // Satu kali ambil semua Simple Queue "fup-*" (bukan per baris) supaya
+  // menampilkan pemakaian FUP tidak menambah request ke router per secret.
+  $fupUsageBytes = array();
+  if (!empty($fupSecrets)) {
+    $getfupqueue = $API->comm("/queue/simple/print");
+    for ($q = 0; $q < count($getfupqueue); $q++) {
+      $qname = $getfupqueue[$q]['name'];
+      if (substr($qname, 0, 4) !== 'fup-') {
+        continue;
+      }
+      $uname = substr($qname, 4);
+      $bytesStr = $getfupqueue[$q]['bytes'];
+      $parts = explode('/', $bytesStr);
+      $fupUsageBytes[$uname] = (isset($parts[0]) ? (float) $parts[0] : 0) + (isset($parts[1]) ? (float) $parts[1] : 0);
+    }
   }
 
   $getpprofile = $API->comm("/ppp/profile/print");
@@ -96,6 +129,38 @@ if (!isset($_SESSION["mikhmon"])) {
           dipindah ke profile ini begitu tanggalnya lewat — dicek router tiap jam.
           Buat dulu profile-nya di menu Profil PPP (rate-limit kecil / redirect ke
           halaman tagihan), baru pilih di sini.
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-12">
+    <div class="card box-bordered">
+      <div class="card-header">
+        <h3><i class="fa fa-tachometer"></i> Auto FUP (Fair Usage Policy)</h3>
+      </div>
+      <div class="card-body">
+        <form autocomplete="off" method="post" action="" class="input-group">
+          <div class="input-group-9">
+            <select class="group-item group-item-l" name="fup_profile" title="Profile tujuan saat kuota FUP terlampaui">
+              <option value="">-- Nonaktifkan auto FUP --</option>
+              <?php for ($i = 0; $i < count($getpprofile); $i++) {
+                $pn = $getpprofile[$i]['name'];
+                echo '<option' . ($pn == $fupDowngradeProfile ? ' selected' : '') . '>' . $pn . '</option>';
+              } ?>
+            </select>
+          </div>
+          <div class="input-group-3">
+            <button type="submit" name="save_fup_profile" class="group-item group-item-r bg-primary" style="cursor:pointer;">Simpan</button>
+          </div>
+        </form>
+        <small class="text-grey">
+          Secret PPPoE yang diberi Kuota FUP (di form Tambah/Edit) otomatis
+          dipindah ke profile ini begitu pemakaian datanya melebihi kuota —
+          dicek router tiap 30 menit, reset otomatis tiap bulan mengikuti
+          tanggal reset masing-masing secret. Buat dulu profile-nya di menu
+          Profil PPP (rate-limit kecil), baru pilih di sini.
         </small>
       </div>
     </div>
@@ -151,13 +216,14 @@ if (!isset($_SESSION["mikhmon"])) {
                 <th>Remote Address</th>
                 <th>Status</th>
                 <th>Jatuh Tempo</th>
+                <th>Kuota FUP</th>
                 <th><?= $_comment ?></th>
               </tr>
             </thead>
             <tbody>
 <?php
   if ($TotalReg == 0) {
-    echo "<tr><td colspan='9' class='text-center text-grey'>"
+    echo "<tr><td colspan='10' class='text-center text-grey'>"
        . ($cari != "" ? "Tidak ada hasil untuk \"" . htmlspecialchars($cari) . "\"." : "Belum ada user PPPoE.")
        . "</td></tr>";
   }
@@ -175,6 +241,9 @@ if (!isset($_SESSION["mikhmon"])) {
     $scomment  = $isolirTag !== null ? $isolirTag['rest'] : $s['comment'];
     $sdueDate  = $isolirTag !== null ? $isolirTag['due'] : '';
     $sIsIsolated = ($isolirProfile != '' && $sprof === $isolirProfile);
+
+    $sFupCfg = isset($fupSecrets[$sname]) ? $fupSecrets[$sname] : null;
+    $sIsFupCapped = ($fupDowngradeProfile != '' && $sprof === $fupDowngradeProfile);
 ?>
               <tr>
                 <td style="text-align:center;">
@@ -218,6 +287,22 @@ if (!isset($_SESSION["mikhmon"])) {
         <i class="fa fa-refresh"></i> Aktifkan
       </span>
 <?php } ?>
+                </td>
+                <td>
+<?php
+    if ($sFupCfg === null) {
+      echo "<span class='text-grey'>-</span>";
+    } else {
+      $usageGB = (isset($fupUsageBytes[$sname]) ? $fupUsageBytes[$sname] : 0) / 1073741824;
+      $quotaGB = (int) $sFupCfg['quota_gb'];
+      $resetDay = (int) $sFupCfg['reset_day'];
+      $pct = $quotaGB > 0 ? round(($usageGB / $quotaGB) * 100) : 0;
+      $cls = $sIsFupCapped ? 'text-danger' : ($pct >= 90 ? 'text-warning' : 'text-success');
+      $icon = $sIsFupCapped ? 'fa-arrow-down' : 'fa-tachometer';
+      echo "<span class='$cls'><i class='fa $icon'></i> " . number_format($usageGB, 1) . " / $quotaGB GB ($pct%)</span>"
+         . "<br><small class='text-grey'>reset tgl $resetDay</small>";
+    }
+?>
                 </td>
                 <td><?= $scomment; ?></td>
               </tr>

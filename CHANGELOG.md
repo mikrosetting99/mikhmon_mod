@@ -12,6 +12,36 @@ nomor versi upstream Mikhmon (`v3.20`, masih dirujuk di halaman About).
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-09-27
+### Added
+- **FUP (Fair Usage Policy)** untuk PPPoE: kuota data bulanan per secret,
+  kecepatan otomatis turun (pindah profile) begitu terlampaui, reset
+  otomatis tiap bulan mengikuti tanggal reset masing-masing secret
+  (bukan tanggal kalender yang sama untuk semua).
+  PPP secret tidak punya field limit-bytes bawaan seperti hotspot user,
+  jadi pemakaian dilacak lewat satu Simple Queue per secret yang dibuat
+  otomatis (`fup-<username>`), target-nya nama interface PPPoE (selalu
+  sama dengan username selagi terhubung, jadi tetap akurat walau IP-nya
+  dari pool/berubah-ubah setiap konek ulang).
+  Profile tujuan saat kuota terlampaui diatur sekali per router session
+  (kartu baru "Auto FUP" di halaman PPP Secrets, pola sama seperti Auto
+  Isolir). Kuota (GB) dan tanggal reset (1-31) diisi per secret di form
+  Tambah/Edit — mengganti nama secret otomatis memindahkan konfigurasi
+  FUP dan Simple Queue-nya, mengosongkan kuota mematikan FUP untuk secret
+  itu dan menghapus queue-nya.
+  Konfigurasi disimpan di `include/pppfup.json` (pola sama dengan
+  `include/pppisolir.json`), terpisah dari tag isolir supaya kedua fitur
+  bisa dipakai independen atau bersamaan pada secret yang sama.
+  Scheduler baru `mikhmon-ppp-fup` (`ros_build_ppp_fup_checker()` di
+  `include/roscompat.php`) jalan tiap 30 menit di router, mengecek queue,
+  turun profile begitu lewat kuota, dan reset counter + kembalikan
+  profile asal begitu tanggal reset tiba.
+  **Catatan**: mekanisme pelacakan lewat Simple Queue+interface-name ini
+  baru di Mikhmon — dites lewat harness PHP (stub router, 33 skenario
+  termasuk rename & hapus konfigurasi, semua lolos), tapi belum pernah
+  diverifikasi langsung di router produksi nyata. Disarankan coba dulu di
+  satu secret non-kritis sebelum dipakai luas.
+
 ## [2.4.0] - 2026-09-18
 ### Added
 - Kartu **"Arsipkan Data Lama"** di halaman Laporan Penjualan: pilih bulan
@@ -164,7 +194,8 @@ Baseline fork stabil pertama, di atas upstream Mikhmon v3.20
   router hanya mengirim data yang dipakai.
 
 [Unreleased]: https://github.com/mikrosetting99/mikhmon_mod/compare/main...HEAD
-[2.4.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/cc97a9b...main
+[2.5.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/a37c90a...main
+[2.4.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/cc97a9b...a37c90a
 [2.3.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/ab6f1d0...cc97a9b
 [2.3.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/8cbeda8...ab6f1d0
 [2.2.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/c3cf148...8cbeda8

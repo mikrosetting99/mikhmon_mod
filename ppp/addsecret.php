@@ -29,6 +29,11 @@ if (!isset($_SESSION["mikhmon"])) {
   $isolirAll = ros_ppp_isolir_settings_load($isolirFile);
   $isolirProfile = isset($isolirAll[$session]['profile']) ? $isolirAll[$session]['profile'] : '';
 
+  $fupFile = __DIR__ . '/../include/pppfup.json';
+  $fupAll = ros_ppp_fup_settings_load($fupFile);
+  $fupDowngradeProfile = isset($fupAll[$session]['downgrade_profile']) ? $fupAll[$session]['downgrade_profile'] : '';
+  $fupSecrets = isset($fupAll[$session]['secrets']) ? $fupAll[$session]['secrets'] : array();
+
   if (isset($_POST['name'])) {
     $name       = (preg_replace('/\s+/', '', $_POST['name']));
     $password   = ($_POST['pass']);
@@ -38,6 +43,8 @@ if (!isset($_SESSION["mikhmon"])) {
     $remoteaddr = ($_POST['remoteaddr']);
     $comment    = ($_POST['comment']);
     $dueDate    = ($_POST['due_date']);
+    $fupQuota   = trim($_POST['fup_quota_gb']);
+    $fupResetDay = trim($_POST['fup_reset_day']);
 
     $finalComment = ros_ppp_compose_isolir($dueDate, $profile, $comment);
 
@@ -66,6 +73,20 @@ if (!isset($_SESSION["mikhmon"])) {
     if ($addError === null) {
       if ($dueDate != '') {
         ros_ensure_ppp_isolir_scheduler($API, $isolirProfile);
+      }
+      if ($fupQuota != '' && $fupResetDay != '') {
+        $fupSecrets[$name] = array(
+          'quota_gb'     => (int) $fupQuota,
+          'reset_day'    => (int) $fupResetDay,
+          'orig_profile' => $profile,
+        );
+        $fupAll[$session]['downgrade_profile'] = $fupDowngradeProfile;
+        $fupAll[$session]['secrets'] = $fupSecrets;
+        ros_ppp_fup_settings_save($fupFile, $fupAll);
+        ros_ensure_ppp_fup_queue($API, $name);
+        if ($fupDowngradeProfile != '') {
+          ros_ensure_ppp_fup_scheduler($API, $fupDowngradeProfile, $fupSecrets);
+        }
       }
       echo "<script>window.location='./?ppp=secrets&session=" . $session . "'</script>";
     }
@@ -156,6 +177,27 @@ if (!isset($_SESSION["mikhmon"])) {
               <td class="align-middle">Tanggal Jatuh Tempo</td>
               <td><input class="form-control" type="date" name="due_date" value=""></td>
             </tr>
+            <tr>
+              <td class="align-middle">Kuota FUP</td>
+              <td>
+                <div class="input-group">
+                  <div class="input-group-6 col-box-6">
+                    <input class="group-item group-item-l" type="number" min="0" name="fup_quota_gb" value="" placeholder="Kosongkan untuk nonaktif">
+                  </div>
+                  <div class="input-group-2 col-box-2">
+                    <div class="group-item text-center" style="padding:5px;">GB /</div>
+                  </div>
+                  <div class="input-group-4 col-box-4">
+                    <select class="group-item group-item-r" name="fup_reset_day">
+                      <option value="">-- Tgl reset --</option>
+                      <?php for ($d = 1; $d <= 31; $d++) { ?>
+                        <option value="<?= $d; ?>"><?= $d; ?></option>
+                      <?php } ?>
+                    </select>
+                  </div>
+                </div>
+              </td>
+            </tr>
           </table>
         </form>
       </div>
@@ -183,6 +225,16 @@ if (!isset($_SESSION["mikhmon"])) {
           Kosongkan kalau tidak pakai auto isolir untuk pelanggan ini.
           <?php if ($isolirProfile == '') { ?>
             <br><span class="text-warning"><i class="fa fa-warning"></i> Profile isolir belum diatur — atur dulu di halaman <a href="./?ppp=secrets&session=<?= $session; ?>">PPP Secrets</a>.</span>
+          <?php } ?>
+        </p>
+        <p style="padding:0px 5px;">
+          <b>Kuota FUP</b> opsional — kalau diisi, router otomatis menurunkan
+          kecepatan pelanggan ini (pindah profile) begitu pemakaian data
+          bulan berjalan melebihi kuota, lalu reset otomatis tiap bulan
+          pada tanggal yang dipilih. Kosongkan kalau tidak pakai FUP untuk
+          pelanggan ini.
+          <?php if ($fupDowngradeProfile == '') { ?>
+            <br><span class="text-warning"><i class="fa fa-warning"></i> Profile FUP belum diatur — atur dulu di halaman <a href="./?ppp=secrets&session=<?= $session; ?>">PPP Secrets</a>.</span>
           <?php } ?>
         </p>
       </div>

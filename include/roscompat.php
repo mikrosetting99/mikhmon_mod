@@ -404,3 +404,179 @@ function ros_trap_message($result)
     }
     return $result['!trap'][0]['message'];
 }
+
+/* ==================================================================
+ * FUP (Fair Usage Policy) PPPoE — kuota data bulanan per secret, turun
+ * profile begitu terlampaui, reset otomatis tiap bulan mengikuti tanggal
+ * langganan masing-masing (bukan tanggal kalender yang sama untuk semua).
+ *
+ * PPP secret tidak punya field limit-bytes bawaan (beda dengan hotspot
+ * user), jadi pemakaian dilacak lewat satu Simple Queue per secret,
+ * target = nama interface PPPoE dinamis (selalu sama dengan username
+ * selama pelanggan itu terhubung, walau IP-nya dari pool/berubah-ubah).
+ * Byte counter di queue itu kumulatif sampai direset manual — tidak ikut
+ * hilang saat pelanggan putus-sambung, beda dengan traffic counter di
+ * /ppp active yang hilang begitu sesi berakhir.
+ *
+ * Berbeda dari mekanisme isolir (tag di comment): konfigurasi FUP
+ * (kuota, tanggal reset, profile asal) disimpan terpisah di
+ * include/pppfup.json supaya tidak tabrakan dengan tag ISOLIR| dan bisa
+ * dipakai independen atau bersamaan pada secret yang sama.
+ * ================================================================== */
+
+function ros_ppp_fup_settings_load($file)
+{
+    if (!file_exists($file)) {
+        return array();
+    }
+    $data = json_decode(file_get_contents($file), true);
+    return is_array($data) ? $data : array();
+}
+
+function ros_ppp_fup_settings_save($file, $all)
+{
+    file_put_contents($file, json_encode($all, JSON_PRETTY_PRINT));
+}
+
+function ros_ppp_fup_queue_name($username)
+{
+    return 'fup-' . $username;
+}
+
+function ros_ppp_fup_scheduler_name()
+{
+    return 'mikhmon-ppp-fup';
+}
+
+/**
+ * Pastikan Simple Queue pelacak pemakaian ada untuk satu secret. Tanpa
+ * limit (max-limit=0/0) karena tugasnya cuma menghitung byte, bukan
+ * membatasi kecepatan — pembatasan kecepatan dilakukan lewat pindah
+ * profile, sama seperti isolir.
+ */
+function ros_ensure_ppp_fup_queue($API, $username)
+{
+    $name = ros_ppp_fup_queue_name($username);
+    $existing = $API->comm('/queue/simple/print', array('?name' => $name));
+    if (empty($existing) || !isset($existing[0]['.id'])) {
+        $API->comm('/queue/simple/add', array(
+            'name' => $name,
+            'target' => $username,
+            'max-limit' => '0/0',
+            'comment' => 'Mikhmon: pelacak kuota FUP ' . $username,
+        ));
+    }
+}
+
+function ros_remove_ppp_fup_queue($API, $username)
+{
+    $name = ros_ppp_fup_queue_name($username);
+    $existing = $API->comm('/queue/simple/print', array('?name' => $name));
+    if (!empty($existing) && isset($existing[0]['.id'])) {
+        $API->comm('/queue/simple/remove', array('.id' => $existing[0]['.id']));
+    }
+}
+
+/**
+ * Bangun script scheduler: jalan berkala, untuk tiap secret yang
+ * dikonfigurasi FUP -
+ *   1) jumlahkan byte download+upload dari Simple Queue-nya, turunkan
+ *      profile ke $downgradeProfile begitu melewati kuota;
+ *   2) begitu tanggal hari ini = tanggal reset milik secret itu, reset
+ *      counter queue-nya dan kembalikan ke profile asal.
+ * Data per-secret (kuota, tanggal reset, profile asal) ditulis sebagai
+ * tiga array sejajar (bukan satu map bersarang) supaya jalan seragam di
+ * RouterOS v6 maupun v7 tanpa bergantung pada dukungan struktur bersarang
+ * versi tertentu.
+ */
+function ros_build_ppp_fup_checker($downgradeProfile, $secretsConfig)
+{
+    $downgradeProfile = str_replace('"', '', $downgradeProfile);
+
+    $names = array();
+    $quotas = array();
+    $resetdays = array();
+    $origs = array();
+    foreach ($secretsConfig as $uname => $cfg) {
+        $names[]     = str_replace('"', '', $uname);
+        $quotas[]    = (int) $cfg['quota_gb'];
+        $resetdays[] = (int) $cfg['reset_day'];
+        $origs[]     = str_replace('"', '', $cfg['orig_profile']);
+    }
+
+    $namesLit = '{"' . implode('";"', $names) . '"}';
+    $quotasLit = '{' . implode(';', $quotas) . '}';
+    $resetdaysLit = '{' . implode(';', $resetdays) . '}';
+    $origsLit = '{"' . implode('";"', $origs) . '"}';
+
+    return ':local downgradeProfile "' . $downgradeProfile . '"; ' .
+        ':local names ' . $namesLit . '; ' .
+        ':local quotasGB ' . $quotasLit . '; ' .
+        ':local resetDays ' . $resetdaysLit . '; ' .
+        ':local origProfiles ' . $origsLit . '; ' .
+        ':local rawDate [/system clock get date]; ' .
+        ':local today 0; ' .
+        ':if ([:len $rawDate] = 10 and [:pick $rawDate 4] = "-") do={' .
+        ':set today [:tonum [:pick $rawDate 8 10]]' .
+        '} else={' .
+        ':set today [:tonum [:pick $rawDate 4 6]]' .
+        '}; ' .
+        ':for i from=0 to=([:len $names] - 1) do={' .
+        ':local uname ($names->$i); ' .
+        ':local qname ("fup-" . $uname); ' .
+        ':local qid [/queue simple find where name=$qname]; ' .
+        ':if ([:len $qid] > 0) do={' .
+        ':local secId [/ppp secret find where name=$uname]; ' .
+        ':if ([:len $secId] > 0) do={' .
+        ':local curProfile [/ppp secret get $secId profile]; ' .
+        ':if ($today = ($resetDays->$i)) do={' .
+        '/queue simple reset-counters $qid; ' .
+        ':if ($curProfile = $downgradeProfile) do={' .
+        '/ppp secret set $secId profile=($origProfiles->$i)' .
+        '}' .
+        '} else={' .
+        ':local bstr [/queue simple get $qid bytes]; ' .
+        ':local slash [:find $bstr "/"]; ' .
+        ':local usedBytes [:tonum [:pick $bstr 0 $slash]]; ' .
+        ':set usedBytes ($usedBytes + [:tonum [:pick $bstr ($slash + 1) [:len $bstr]]]); ' .
+        ':local limitBytes (($quotasGB->$i) * 1073741824); ' .
+        ':if ($usedBytes > $limitBytes && $curProfile != $downgradeProfile) do={' .
+        '/ppp secret set $secId profile=$downgradeProfile' .
+        '}' .
+        '}' .
+        '}' .
+        '}' .
+        '}';
+}
+
+/**
+ * Pastikan scheduler pengecek FUP ada di router dan memakai konfigurasi
+ * (kuota/tanggal reset/profile asal) yang sedang berlaku. Dipanggil tiap
+ * kali pengaturan FUP suatu secret disimpan/dihapus.
+ */
+function ros_ensure_ppp_fup_scheduler($API, $downgradeProfile, $secretsConfig)
+{
+    if ($downgradeProfile == '' || empty($secretsConfig)) {
+        return;
+    }
+    $name = ros_ppp_fup_scheduler_name();
+    $script = ros_build_ppp_fup_checker($downgradeProfile, $secretsConfig);
+    $existing = $API->comm('/system/scheduler/print', array('?name' => $name));
+    if (!empty($existing) && isset($existing[0]['.id'])) {
+        $API->comm('/system/scheduler/set', array(
+            '.id' => $existing[0]['.id'],
+            'on-event' => $script,
+            'interval' => '30m',
+            'disabled' => 'no',
+        ));
+    } else {
+        $API->comm('/system/scheduler/add', array(
+            'name' => $name,
+            'start-time' => 'startup',
+            'interval' => '30m',
+            'on-event' => $script,
+            'disabled' => 'no',
+            'comment' => 'Mikhmon: cek kuota FUP PPPoE',
+        ));
+    }
+}

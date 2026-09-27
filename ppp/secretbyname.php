@@ -29,6 +29,11 @@ if (!isset($_SESSION["mikhmon"])) {
   $isolirAll = ros_ppp_isolir_settings_load($isolirFile);
   $isolirProfile = isset($isolirAll[$session]['profile']) ? $isolirAll[$session]['profile'] : '';
 
+  $fupFile = __DIR__ . '/../include/pppfup.json';
+  $fupAll = ros_ppp_fup_settings_load($fupFile);
+  $fupDowngradeProfile = isset($fupAll[$session]['downgrade_profile']) ? $fupAll[$session]['downgrade_profile'] : '';
+  $fupSecrets = isset($fupAll[$session]['secrets']) ? $fupAll[$session]['secrets'] : array();
+
   // $secretbyname boleh berupa .id (*1) atau nama secret.
   if (substr($secretbyname, 0, 1) != "*") {
     $findsecret   = $API->comm("/ppp/secret/print", array("?name" => "$secretbyname"));
@@ -45,6 +50,9 @@ if (!isset($_SESSION["mikhmon"])) {
     $comment    = ($_POST['comment']);
     $disabled   = ($_POST['disabled']);
     $dueDate    = ($_POST['due_date']);
+    $fupQuota   = trim($_POST['fup_quota_gb']);
+    $fupResetDay = trim($_POST['fup_reset_day']);
+    $oldName    = ($_POST['old_name']);
 
     // Profile yang disimpan di tag isolir adalah "profile asal" (tujuan
     // pemulihan saat tanggal jatuh tempo diperpanjang) — kalau staff
@@ -89,6 +97,44 @@ if (!isset($_SESSION["mikhmon"])) {
       if ($dueDate != '') {
         ros_ensure_ppp_isolir_scheduler($API, $isolirProfile);
       }
+
+      // FUP: profil asal dipertahankan sama seperti isolir kalau staff
+      // menyimpan while secret ini sedang di profile downgrade FUP.
+      $fupOldCfg = isset($fupSecrets[$oldName]) ? $fupSecrets[$oldName] : null;
+      $fupOrigProfileForTag = $profile;
+      if ($fupDowngradeProfile != '' && $profile === $fupDowngradeProfile && $fupOldCfg !== null && $fupOldCfg['orig_profile'] != '') {
+        $fupOrigProfileForTag = $fupOldCfg['orig_profile'];
+      }
+
+      if ($fupQuota != '' && $fupResetDay != '') {
+        // Rename: pindahkan config & queue dari nama lama ke nama baru.
+        if ($oldName != '' && $oldName !== $name && isset($fupSecrets[$oldName])) {
+          unset($fupSecrets[$oldName]);
+          ros_remove_ppp_fup_queue($API, $oldName);
+        }
+        $fupSecrets[$name] = array(
+          'quota_gb'     => (int) $fupQuota,
+          'reset_day'    => (int) $fupResetDay,
+          'orig_profile' => $fupOrigProfileForTag,
+        );
+        $fupAll[$session]['downgrade_profile'] = $fupDowngradeProfile;
+        $fupAll[$session]['secrets'] = $fupSecrets;
+        ros_ppp_fup_settings_save($fupFile, $fupAll);
+        ros_ensure_ppp_fup_queue($API, $name);
+        if ($fupDowngradeProfile != '') {
+          ros_ensure_ppp_fup_scheduler($API, $fupDowngradeProfile, $fupSecrets);
+        }
+      } elseif ($oldName != '' && isset($fupSecrets[$oldName])) {
+        // Field dikosongkan -> matikan FUP untuk secret ini.
+        unset($fupSecrets[$oldName]);
+        $fupAll[$session]['secrets'] = $fupSecrets;
+        ros_ppp_fup_settings_save($fupFile, $fupAll);
+        ros_remove_ppp_fup_queue($API, $oldName);
+        if ($fupDowngradeProfile != '') {
+          ros_ensure_ppp_fup_scheduler($API, $fupDowngradeProfile, $fupSecrets);
+        }
+      }
+
       echo "<script>window.location='./?ppp=secrets&session=" . $session . "'</script>";
     }
   }
@@ -108,6 +154,18 @@ if (!isset($_SESSION["mikhmon"])) {
   $sdueDate  = $isolirTag !== null ? $isolirTag['due'] : '';
   $scomment  = $isolirTag !== null ? $isolirTag['rest'] : $scommentRaw;
   $sIsIsolated = ($isolirProfile != '' && $sprof === $isolirProfile);
+
+  $sFupCfg = isset($fupSecrets[$sname]) ? $fupSecrets[$sname] : null;
+  $sIsFupCapped = ($fupDowngradeProfile != '' && $sprof === $fupDowngradeProfile);
+  $sFupUsageGB = 0;
+  if ($sFupCfg !== null) {
+    $getfupqueue = $API->comm("/queue/simple/print", array("?name" => "fup-" . $sname));
+    if (!empty($getfupqueue)) {
+      $parts = explode('/', $getfupqueue[0]['bytes']);
+      $usageBytes = (isset($parts[0]) ? (float) $parts[0] : 0) + (isset($parts[1]) ? (float) $parts[1] : 0);
+      $sFupUsageGB = $usageBytes / 1073741824;
+    }
+  }
 
   if ($sname == "") {
     echo "<b>PPP Secret not found, redirect to secret list...</b>";
@@ -142,6 +200,7 @@ if (!isset($_SESSION["mikhmon"])) {
 <?php } ?>
         <form autocomplete="off" method="post" action="">
           <input type="hidden" name="old_comment_raw" value="<?= htmlspecialchars($scommentRaw); ?>">
+          <input type="hidden" name="old_name" value="<?= htmlspecialchars($sname); ?>">
           <div>
             <a class="btn bg-warning" href="./?ppp=secrets&session=<?= $session; ?>"><i class="fa fa-close"></i> <?= $_close ?></a>
             <button type="submit" onclick="loader()" class="btn bg-primary" name="save"><i class="fa fa-save"></i> <?= $_save ?></button>
@@ -231,6 +290,33 @@ if (!isset($_SESSION["mikhmon"])) {
                 <?php } ?>
               </td>
             </tr>
+            <tr>
+              <td class="align-middle">Kuota FUP</td>
+              <td>
+                <div class="input-group">
+                  <div class="input-group-6 col-box-6">
+                    <input class="group-item group-item-l" type="number" min="0" name="fup_quota_gb" value="<?= $sFupCfg !== null ? (int) $sFupCfg['quota_gb'] : ''; ?>" placeholder="Kosongkan untuk nonaktif">
+                  </div>
+                  <div class="input-group-2 col-box-2">
+                    <div class="group-item text-center" style="padding:5px;">GB /</div>
+                  </div>
+                  <div class="input-group-4 col-box-4">
+                    <select class="group-item group-item-r" name="fup_reset_day">
+                      <option value="">-- Tgl reset --</option>
+                      <?php for ($d = 1; $d <= 31; $d++) { ?>
+                        <option value="<?= $d; ?>"<?= ($sFupCfg !== null && (int) $sFupCfg['reset_day'] === $d) ? ' selected' : ''; ?>><?= $d; ?></option>
+                      <?php } ?>
+                    </select>
+                  </div>
+                </div>
+                <?php if ($sFupCfg !== null) { ?>
+                  <small class="<?= $sIsFupCapped ? 'text-danger' : 'text-grey'; ?>">
+                    <?php if ($sIsFupCapped) { ?><i class="fa fa-arrow-down"></i> Sedang FUP (profile: <?= $fupDowngradeProfile; ?>) — <?php } ?>
+                    Pemakaian bulan ini: <?= number_format($sFupUsageGB, 1); ?> / <?= (int) $sFupCfg['quota_gb']; ?> GB
+                  </small>
+                <?php } ?>
+              </td>
+            </tr>
           </table>
         </form>
       </div>
@@ -264,6 +350,18 @@ if (!isset($_SESSION["mikhmon"])) {
         echo "<span class='text-danger'><i class='fa fa-ban'></i> diisolir (jatuh tempo " . $sdueDate . ")</span>";
       } else {
         echo "<span class='text-success'><i class='fa fa-check-circle'></i> aktif s/d " . $sdueDate . "</span>";
+      } ?>
+            </td>
+          </tr>
+          <tr>
+            <td class="align-middle">FUP</td>
+            <td>
+<?php if ($sFupCfg === null) {
+        echo "<span class='text-grey'>tidak dipakai</span>";
+      } elseif ($sIsFupCapped) {
+        echo "<span class='text-danger'><i class='fa fa-arrow-down'></i> FUP (" . number_format($sFupUsageGB, 1) . " / " . (int) $sFupCfg['quota_gb'] . " GB)</span>";
+      } else {
+        echo "<span class='text-success'><i class='fa fa-check-circle'></i> " . number_format($sFupUsageGB, 1) . " / " . (int) $sFupCfg['quota_gb'] . " GB</span>";
       } ?>
             </td>
           </tr>

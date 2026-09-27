@@ -18,6 +18,7 @@
 session_start();
 // hide all error
 error_reporting(0);
+require_once __DIR__ . '/../include/roscompat.php';
 if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
@@ -33,17 +34,36 @@ if (!isset($_SESSION["mikhmon"])) {
     $onlyone    = ($_POST['onlyone']);
     $comment    = ($_POST['comment']);
 
-    $API->comm("/ppp/profile/add", array(
-      "name"           => "$name",
-      "local-address"  => "$localaddr",
-      "remote-address" => "$remoteaddr",
-      "rate-limit"     => "$ratelimit",
-      "dns-server"     => "$dns",
-      "only-one"       => "$onlyone",
-      "comment"        => "$comment",
-    ));
+    // Sama seperti bug di PPP Secret: RouterOS menolak string kosong untuk
+    // field bertipe address ("invalid value for argument address"), jadi
+    // field opsional ini hanya dikirim kalau benar-benar diisi — dulu selalu
+    // dikirim walau kosong, membuat /ppp/profile/add gagal total secara
+    // senyap (redirect tetap jalan seolah berhasil, profile tidak pernah
+    // benar-benar dibuat).
+    $addArgs = array(
+      "name"     => "$name",
+      "only-one" => "$onlyone",
+      "comment"  => "$comment",
+    );
+    if ($localaddr != '') {
+      $addArgs["local-address"] = "$localaddr";
+    }
+    if ($remoteaddr != '') {
+      $addArgs["remote-address"] = "$remoteaddr";
+    }
+    if ($ratelimit != '') {
+      $addArgs["rate-limit"] = "$ratelimit";
+    }
+    if ($dns != '') {
+      $addArgs["dns-server"] = "$dns";
+    }
 
-    echo "<script>window.location='./?ppp=profiles&session=" . $session . "'</script>";
+    $addResult = $API->comm("/ppp/profile/add", $addArgs);
+    $addError = ros_trap_message($addResult);
+
+    if ($addError === null) {
+      echo "<script>window.location='./?ppp=profiles&session=" . $session . "'</script>";
+    }
   }
 ?>
 <div class="row">
@@ -55,6 +75,11 @@ if (!isset($_SESSION["mikhmon"])) {
         </h3>
       </div>
       <div class="card-body">
+<?php if (!empty($addError)) { ?>
+        <div class="bg-danger" style="padding:8px 10px; border-radius:5px; margin-bottom:10px;">
+          <i class="fa fa-ban"></i> Gagal menambah profile — router menolak: <b><?= htmlspecialchars($addError); ?></b>
+        </div>
+<?php } ?>
         <form autocomplete="off" method="post" action="">
           <div>
             <a class="btn bg-warning" href="./?ppp=profiles&session=<?= $session; ?>"><i class="fa fa-close"></i> <?= $_close ?></a>

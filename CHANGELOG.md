@@ -12,6 +12,22 @@ nomor versi upstream Mikhmon (`v3.20`, masih dirujuk di halaman About).
 
 ## [Unreleased]
 
+## [2.5.1] - 2026-09-27
+### Fixed
+- Tambah/Edit Profile PPP gagal total (profile tidak tersimpan sama
+  sekali, tidak muncul di daftar maupun dropdown mana pun) begitu Local
+  Address dikosongkan atau Remote Address dipilih "none" — bug yang sama
+  persis dengan yang sudah diperbaiki di Tambah/Edit PPP Secret (v2.2.1):
+  router menolak field beralamat kosong dengan `invalid value for
+  argument address`, dan kegagalan itu senyap karena tidak ada
+  pengecekan `!trap`. Ditemukan saat membuat profile downgrade untuk
+  fitur FUP yang baru ditambahkan (v2.5.0) — profile itu wajar dibuat
+  tanpa mengisi Local/Remote Address.
+  Field local-address/remote-address/rate-limit/dns-server sekarang
+  hanya dikirim ke router kalau memang diisi, dan respons `!trap`
+  ditampilkan sebagai pesan error di halaman (`ros_trap_message()`,
+  sama seperti perbaikan sebelumnya di PPP Secret).
+
 ## [2.5.0] - 2026-09-27
 ### Added
 - **FUP (Fair Usage Policy)** untuk PPPoE: kuota data bulanan per secret,
@@ -194,7 +210,8 @@ Baseline fork stabil pertama, di atas upstream Mikhmon v3.20
   router hanya mengirim data yang dipakai.
 
 [Unreleased]: https://github.com/mikrosetting99/mikhmon_mod/compare/main...HEAD
-[2.5.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/a37c90a...main
+[2.5.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/30b7c7f...main
+[2.5.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/a37c90a...30b7c7f
 [2.4.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/cc97a9b...a37c90a
 [2.3.1]: https://github.com/mikrosetting99/mikhmon_mod/compare/ab6f1d0...cc97a9b
 [2.3.0]: https://github.com/mikrosetting99/mikhmon_mod/compare/8cbeda8...ab6f1d0

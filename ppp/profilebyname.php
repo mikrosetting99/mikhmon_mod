@@ -18,6 +18,7 @@
 session_start();
 // hide all error
 error_reporting(0);
+require_once __DIR__ . '/../include/roscompat.php';
 if (!isset($_SESSION["mikhmon"])) {
   header("Location:../admin.php?id=login");
 } else {
@@ -35,18 +36,36 @@ if (!isset($_SESSION["mikhmon"])) {
     $onlyone    = ($_POST['onlyone']);
     $comment    = ($_POST['comment']);
 
-    $API->comm("/ppp/profile/set", array(
-      ".id"            => "$pprofile",
-      "name"           => "$name",
-      "local-address"  => "$localaddr",
-      "remote-address" => "$remoteaddr",
-      "rate-limit"     => "$ratelimit",
-      "dns-server"     => "$dns",
-      "only-one"       => "$onlyone",
-      "comment"        => "$comment",
-    ));
+    // Sama seperti addpppprofile.php: field beralamat cuma dikirim kalau
+    // diisi, supaya string kosong tidak ditolak router lalu bikin Simpan
+    // gagal total secara senyap. Konsekuensinya field yang sudah pernah
+    // diisi tidak bisa dikosongkan lagi lewat form ini (tetap dipertahankan
+    // nilainya di router) — sama seperti secretbyname.php.
+    $setArgs = array(
+      ".id"      => "$pprofile",
+      "name"     => "$name",
+      "only-one" => "$onlyone",
+      "comment"  => "$comment",
+    );
+    if ($localaddr != '') {
+      $setArgs["local-address"] = "$localaddr";
+    }
+    if ($remoteaddr != '') {
+      $setArgs["remote-address"] = "$remoteaddr";
+    }
+    if ($ratelimit != '') {
+      $setArgs["rate-limit"] = "$ratelimit";
+    }
+    if ($dns != '') {
+      $setArgs["dns-server"] = "$dns";
+    }
 
-    echo "<script>window.location='./?ppp=profiles&session=" . $session . "'</script>";
+    $setResult = $API->comm("/ppp/profile/set", $setArgs);
+    $setError = ros_trap_message($setResult);
+
+    if ($setError === null) {
+      echo "<script>window.location='./?ppp=profiles&session=" . $session . "'</script>";
+    }
   }
 
   $getprofile = $API->comm("/ppp/profile/print", array(
@@ -77,6 +96,11 @@ if (!isset($_SESSION["mikhmon"])) {
         </h3>
       </div>
       <div class="card-body">
+<?php if (!empty($setError)) { ?>
+        <div class="bg-danger" style="padding:8px 10px; border-radius:5px; margin-bottom:10px;">
+          <i class="fa fa-ban"></i> Gagal menyimpan — router menolak: <b><?= htmlspecialchars($setError); ?></b>
+        </div>
+<?php } ?>
         <form autocomplete="off" method="post" action="">
           <div>
             <a class="btn bg-warning" href="./?ppp=profiles&session=<?= $session; ?>"><i class="fa fa-close"></i> <?= $_close ?></a>
